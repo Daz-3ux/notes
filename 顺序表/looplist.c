@@ -28,7 +28,7 @@ List* InitList()//直接初始化
         printf("Error");
     }
     head->element = 0;//记录元素个数，方便遍历输出
-    head->next = head;
+    head->next = head;//循环链表精髓
     return head;
 }
 

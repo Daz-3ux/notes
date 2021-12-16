@@ -24,10 +24,14 @@ int* queue;//用数组实现队列
 int front;//头指针，因为是数组，所以用下标代表指针
 int end;//尾指针
 
+void InitQueue();
 
 int main(int argc, char* argv[])
 {
-    insert(01);
+    InitQueue();
+    insert(0);
+    insert(1);
+    insert(2);
 }
 
 int isEmpty()//队空
@@ -43,7 +47,7 @@ int isEmpty()//队空
 
 int isFull()//队满
 {
-    if((end+1) % maxSize){
+    if((end+1) % maxSize == front){
         return 1;
     }else{
         return 0;
@@ -69,5 +73,10 @@ void deletekey()
     }else{
         front = (front + 1) % maxSize;
     }
+}
+
+void InitQueue()
+{
+    queue = (int*)malloc(sizeof(int) * maxSize);
 }
 

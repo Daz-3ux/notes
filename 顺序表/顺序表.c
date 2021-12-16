@@ -63,7 +63,7 @@ void add(MyArray *arr, ElementType key)
     }
     else
     {
-        printf("元素已满，按e扩容（5个单位）");
+        printf("元素已满，按e扩容5个单位");
         char ch;
         scanf("%c",&ch);
         if(ch == 'e'){
