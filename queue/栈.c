@@ -17,7 +17,6 @@ int top;//栈顶指针 因为是数组所以用下标表示 用来判断数组�
 int end;//栈底指针                      控制数据的存取
 
 
-
 void InitStack()
 {
     stack = (int*)malloc(sizeof(int) * SIZE);
@@ -33,11 +32,12 @@ void insert(int key)//进栈
     if(end == top){
         printf("满了大哥");
     }else{
-        stack[end++] = key;
+        end++;
+        stack[end] = key;
     }
 }
 
-void deletekey(int key)//出栈
+void deletekey()//出栈
 {
     if(end == -1){
         printf("空了大哥");
