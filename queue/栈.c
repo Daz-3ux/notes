@@ -16,14 +16,11 @@ int* stack;//用数组来表示栈的操作
 int top;//栈顶指针 因为是数组所以用下标表示 用来判断数组是否已满
 int end;//栈底指针                      控制数据的存取
 
-int main(int argc, char **argv)
-{
 
-}
 
 void InitStack()
 {
-    stack = (int*)malloc(sizeof(int));
+    stack = (int*)malloc(sizeof(int) * SIZE);
     if(stack == NULL){
         printf("ERROR");
     }
@@ -48,4 +45,11 @@ void deletekey(int key)//出栈
         //如果存的是节点记得free；
         end--;//从表面上删了就行了
     }
+}
+
+int main(int argc, char **argv)
+{
+    InitStack();
+    insert(0);
+    insert(1);
 }
