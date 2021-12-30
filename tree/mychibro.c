@@ -1,5 +1,5 @@
 /*使用孩子兄弟表示法+链表完成表示*/
-/*主义所有暂时不用的指针都要指向NULL*/
+/*注意所有暂时不用的指针都要指向NULL*/
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -21,8 +21,10 @@ int main(int argc, char** argv)
 {
     Init(0);
     insert(1,0);
-    //insert(1,9);
     insert(2,0);
+    insert(3,1);
+    insert(4,2);
+    insert(5,666);
 }
 
 void Init(int key)//初始化全局变量根节点
@@ -37,7 +39,7 @@ void insert(int key,int parent)
 {
     temp = get_node(root,parent);//temp是待被插入节点
     if(temp == NULL){
-        printf("Error");
+        printf("%d没有父节点啊哥们\n",key);
     }else{
         if(temp -> child != NULL){//如果该节点的孩子不为空
             temp = temp -> child;
@@ -62,12 +64,13 @@ Node* get_node(Node* node,int parent)//定位父节点
     if(node -> data == parent){
         return node;
     }
-    if(node -> child != NULL){
-        get_node(node -> child,parent);
-    }
     if(node -> bro != NULL){
-        get_node(node-> bro,parent);
+        return get_node(node-> bro,parent);
     }
+    if(node -> child != NULL){
+        return get_node(node -> child,parent);
+    }
+    
     
     return NULL;
 }

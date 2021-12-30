@@ -62,9 +62,11 @@ Node* get_node(Node* node,int parent)//定位父节点，拿递归写,node刚开
     //只要理解递归，那么就能明白下面两个函数先后顺序不重要
     if(node -> child != NULL){//如果孩子不是空，那就把它的孩子传到递归中
         get_node(node->child,parent);
+        return NULL;
     }
     if(node -> bro != NULL){//如果它的兄弟不为空，那就把它的兄弟传到递归中
         get_node(node->bro,parent);
+        return NULL;
     }
 
     return NULL;//要是递归完了还没找到那就是没有，返回NULL
