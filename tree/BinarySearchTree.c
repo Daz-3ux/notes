@@ -69,7 +69,6 @@ void insert(int key)
 void show(Node * node)
 {
     if(node == NULL){
-        printf("遍历完喽");
         return;
     }
     show(node -> left);
