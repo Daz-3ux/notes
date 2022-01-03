@@ -15,7 +15,7 @@ void insert(int key);
 void show(Node* node);//传入根节点进行中序遍历
 int delete_node(Node* node,int key);//从根节点开始遍历删除指定元素
 /*定位到待删除节点的前一个节点*/
-Node* pre_node(Node* root,Node* node,int key);//根节点，待删除节点,待删除数据
+Node* pre_node(Node* root,Node* node);//根节点，待删除节点,待删除数据
 
 int main(int argc, char** argv)
 {
@@ -89,7 +89,7 @@ int delete_node(Node* node,int key)
     }else{
         if(node -> data == key){
             //删除操作:首先定位到待删除元素前一个节点
-            Node* tempNode = pre_node(root,node,key);//从根节点遍历，找到待删除节点及其待删除元素，\
+            Node* tempNode = pre_node(root,node);//从根节点遍历，找到待删除节点及其待删除元素，\
             后两者可以一起写，这里分开是为了方便理解
             Node* temp = NULL;
             /*如果右子树为空，只需重新连接节点(包含了叶子情况)*/
@@ -127,7 +127,7 @@ int delete_node(Node* node,int key)
                 Node* left_max = node;//找最大值的临时指针
                 left_max = left_max -> left;//先找到左子树
                 while(left_max -> right != NULL){
-                    temp = left_max;//指向前一个
+                    temp = left_max;//指向下一个
                     left_max = left_max -> right;
                 }
                 node -> data = left_max -> data;
@@ -152,19 +152,19 @@ int delete_node(Node* node,int key)
     return -1;
 }
 
-Node* pre_node(Node* root,Node* node,int key)
+Node* pre_node(Node* root,Node* node)
 {
     if(root == NULL || node == root){
         return node;
     }else{
-        if(root -> left != NULL && root -> left -> data == key){
+        if(root -> left != NULL && root -> left -> data == node -> data){
             return root;
-        }else if(root -> right != NULL && root -> right -> data == key){
+        }else if(root -> right != NULL && root -> right -> data == node -> data){
             return root;
-        }else if(key < root -> data){
-            return pre_node(root -> left,node,key);
-        }else if(key > root -> data){
-            return pre_node(root -> right,node,key);
+        }else if(node -> data < root -> data){
+            return pre_node(root -> left,node);
+        }else if(node -> data > root -> data){
+            return pre_node(root -> right,node);
         }
     }
 
