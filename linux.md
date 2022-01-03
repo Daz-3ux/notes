@@ -10,6 +10,12 @@
 2022.1.1
 ```
 
+学习于：
+1. https://www.bilibili.com/video/BV13U4y1p7kB
+2. https://github.com/shihyu/MyTool/blob/master/GDB/Debugging.with.gdb%20%E4%B8%AD%E6%96%87.pdf
+3. https://seisman.github.io/how-to-write-makefile/overview.html
+4. https://101.lug.ustc.edu.cn/
+
 # 常见名词解释
 
 - GUN：Gun's NO Unix,口号
@@ -42,6 +48,17 @@
     - 共享内存
     - 套接字
 
+![kernel](https://mmbiz.qpic.cn/mmbiz_png/K0TMNq37VN2JhvhMn471iaWUhZErdXDDP3WJjiayEfxUQ9enY2HyLtvCqtH5ydyicwNQNOm6IlWnOYhic8agibVyCwA/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+
+
+***
+
 # LINUX目录
 - 根目录是‘/’，目录结构类似于树
-- 
+- 子目录各有各的功能
+
+看完了p7
+
+```
+
+```
