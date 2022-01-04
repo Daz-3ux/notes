@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include<stdlib.h>
+//#include<stdlib.h>
 
 #define MAXSIZE 100
 
@@ -7,10 +7,17 @@ int uset[MAXSIZE];//定义一个足够长数组,用下标表示节点
 
 /*构造并查集*/
 void makeSet(int size);//size为节点数
+int find(int i);//查
+void unite(int x,int y);//并
 
 int main(int argc, char** argv)
 {
-
+    makeSet(MAXSIZE);
+    unite(3,4);
+    unite(3,5);
+    unite(3,2);
+    int i = find(3);
+    printf("%d\n",i);
 }
 
 void makeSet(int size)
@@ -24,19 +31,19 @@ void makeSet(int size)
 /*找到元素所在集合代表 如果位于同一集合则不合并*/
 int find(int i)
 {
-    if(i == uset[i]){
+    if(i == uset[i]){//找代表时代表一直指向自己
         return i;
     }
     return find(uset[i]);
 }
 
-void unite(int x,int y)
+void unite(int x,int y)//将x合并到y上
 {
     //先找到节点所对应代表
-    int x = find(x);
-    int y = find(y);
-    if(x == y){
+    int i = find(x);
+    int j = find(y);
+    if(i == j){
         return;//不合并
     }
-    uset[x] = y;
+    uset[i] = j;//i的父节点就是j
 }
