@@ -16,7 +16,8 @@ int main(int argc, char** argv)
     unite(3,4);
     unite(3,5);
     unite(3,2);
-    int i = find(3);
+    unite(1,3);
+    int i = find(2);
     printf("%d\n",i);
 }
 
