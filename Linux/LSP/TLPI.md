@@ -18,7 +18,7 @@ book:《Linux/Unix系统编程手册》
 ## fork()
 - 创建新进程
 - 父子进程执行相同的文本段，但却拥有各自不同的栈段，数据段和堆段**拷贝**
-- 成功了会返回两次，子进程返回0，父进程返回子进程ID
+- 成功了会**返回两次**，子进程返回0，父进程返回子进程ID
 - 失败则返回-1
 - 父子进程可以存在文件共享：子进程会获得父进程的文件描述符的副本
 - fork()后常伴随exec()，所以对父进程的复制有一系列操作去避免浪费（比较高深）
@@ -67,7 +67,7 @@ void exit(int status);
 -
     - 程序一般不调用_exit(),而是使用**库函数**exit()
     - exit()调用前会执行以下动作：
-    1. 调用退出处理程序
+    1. 调用退出处理程序（exit handler）
     2. 刷新stdio流缓存区
     3. 使用由status提供的值执行_exit()**系统调用**
     - return n 等同于执行 exit(n)
@@ -134,3 +134,134 @@ void func(int status,void *arg)
 - 出错时返回非0值
 - 使用atexit()和on_exit()注册的函数位于同一函数列表
 - 若需确保可移植性则不要使用此函数
+
+### fork(),stdio缓存区以及_exit()之间的交互
+- 混合使用stdio函数和系统调用 对同一文件 进行IO处理时，需特别注意：
+    - fork()之前应该强制使用fflush()刷新stdio缓存区，或者使用setbuf()关闭stdio缓存区
+    - 调用_exit()而非exit()可以避免刷新stdio缓冲区
+    - 一个通用原则：父进程使用exit()终止，子进程使用_exit()终止，从而确保只有一个进程调用退出程序并刷新stdio缓冲区
+
+# （上-26） 监控子进程
+两种监控子进程的技术：
+- 系统调用wait()
+- 信号SIGCHLD
+
+## 等待子进程
+父进程经常需要检测子进程的**终止时间**和**过程**
+
+### 系统调用wait()
+等待调用进程的任一子进程终止，同时在参数status所指向的缓存区中返回该子进程的终止状态
+```c
+#include<sys/wait.h>
+
+pid_t wait(int *status);
+```
+系统调用wait后执行如下操作：
+- 如果进程所有子进程都在运行，则阻塞
+- 如果一个子进程已经终止，正等待父进程获取其终止状态，则取得该子进程的终止状态且立即返回
+- 如果没有子进程，则出错返回-1并将errno置为ECHILD
+
+### 系统调用waitpid()
+waitpid()的诞生是为了突破wait()存在的诸多限制
+- 如果父进程拥有多个子进程，wait()无法等待某个**特定**子进程，只能按顺序等待
+- 如果没有子进程，wait()总是保持阻塞
+- wait()只能发现那些已经终止的子进程
+
+```c
+#include<sys/wait.h>
+
+pid_t waitpid(pid_t pid, int *status, int option);
+```
+pid表示需要等待的具体子进程，可对应多种意义：
+- pid > 0:pid为需要等待的具体子进程的ID
+- pid = 0:等待与调研进程(父进程)同一个process group的所有子进程
+- pid < -1:等待进程组标识符与pid绝对值相对的所有子进程
+- pid = -1:等待任意子进程
+option为一个位掩码，可包含0至多个标识
+
+### 等待状态值
+- wait()与waitpid()返回的status值，可用来区不同的子进程事件
+- 可用标准宏来处理status值
+
+### 从信号处理程序中终止进程
+捕获某些可以终止进程的信号，在进程终止前执行一些清理步骤（类似退出处理程序）
+
+### 系统调用waitid()
+```c
+#include<sys/wait.h>
+
+int waitid(idtype_t idtype,id_t id,siginfo_t *infop, int options);
+```
+- idtype为P_ALL，则等待任何子进程，同时忽略id值
+- idtype为P_PID，则等待 进程ID为id 的进程的子进程
+- idtype为P_PGID，则等待 进程组ID为id 的各进程的所有子进程
+
+waitid()相较于waitpid()可实现更精确的控制子进程事件
+
+### wait3()与wait4()
+- 类似waitpid()
+- 可返回子进程的资源使用情况
+
+## 孤儿进程与僵尸进程
+父进程与子进程的生命周期一般都不相同
+
+### 孤儿进程
+- init的进程ID为1，为众进程之祖
+- 某一进程的父进程终止后会成为orphan，由init接管
+
+### 僵尸进程
+- 内核将先于wait()终止的子进程转为僵尸进程，确保父进程总是可以使用wait()
+- 僵尸进程无法杀死，只可调用wait()从系统中移除
+
+## SIGCHLD信号
+- 无论一个信号于何时终止，系统都会向其父进程发送SIGCHLD信号
+- 可以采用SIGCHLD信号的**处理程序**来避免特定情况下wait()与waitpid()造成的浪费
+
+### 为SIGCHLD信号建立信号处理程序
+- 为保证可移植性应在任何子进程创建之前就设置好SIGCHLD处理程序
+
+### 向已停止的子进程发送SIGCHLD信号
+- 若未使用SA_NOCLDSTOP标志，系统会在子进程停止时向父进程发送SIGCHLD信号
+- 若使用了此标志，子进程停止时就不会向父进程发送SIGCHLD信号
+- 当信号SIGCHLD导致已停止的子进程恢复执行时，也向父进程发送SIGCHLD信号
+
+### 忽略终止的子进程
+将对SIGCHLD的处置显式置为SIG_IGN，系统从而将其**后**终止的所有子进程立即删除，避免转换为僵尸进程
+
+
+# (上-27) 程序的执行
+介绍execve()与system()
+
+## 执行新程序：execve()
+```c
+#include<unistd.h>
+
+int execve(const char *pathname,char *const argv[],char *const envp[]);
+```
+- Never return onsuccess, returns -1 on error
+- pathname为新程序的路径名（绝对相对都可以）
+- argv为命令行参数
+- envp为新程序的环境列表
+- 将新程序加载到某一**进程**的内存空间，丢弃旧有程序，进程的栈，数据以及堆段会被新程序的相应部件替换
+- 最频繁的用法：由fork（）生成的子进程对execve()进行调用
+- 调用execve()后进程ID不变
+
+## exec()库函数
+- 为执行exec()提供了多种API选择，均构建于execve()之上
+
+### 环境变量PATH
+- PATH的值是一个以冒号分隔，由多个目录名（路径前缀）组成的字符串
+
+### 解释器脚本
+- 解释器：能够读取并执行文本格式命令的程序
+- 脚本需满足两点要求
+    - 必须赋予脚本文件可执行权限
+    - 文件的起始行必须指定运行脚本解释器的路径名
+```
+//initial line格式
+#! interpreter-path [option-arg]
+```
+- path一般采用相对路径
+- arg的用途之一是为解释器指定命令行参数
+
+## 文件描述符与exec()
