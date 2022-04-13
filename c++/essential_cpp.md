@@ -84,3 +84,34 @@ vector<int> *seq_addrs[seq_cnt] = {//seq_addrs是一个array
 `#include<fstream>`
 
 - cerr：standard error(无缓冲)
+
+# 面向过程的编程风格
+
+## 2.1 撰写函数
+与c无异
+```cpp
+int test_some[int abc];
+```
+## 2.2 调用函数
+- 调用函数时会建立起一个“程序栈”(program stack)
+
+- 传值与传址(pass by reference)
+    - 面对reference的所有操作都像面对“reference所代表之对象”   
+
+- 生存空间(scope)和生存范围(extent)
+
+- 动态内存管理
+    - 在堆区分配内存(heap memory)
+    - 从heap中配置数组
+```cpp
+int *pia = new int[24];
+//C++未提供任何语法让我们得以从heap配置数组的同时为其元素设定初值
+```
+    - 使用delete释放
+    - 如果要删除数组所有对象：
+```cpp
+delete [] pia;
+``` 
+~~原世上无内存泄漏~~
+
+## 2.3 提供默认参数
