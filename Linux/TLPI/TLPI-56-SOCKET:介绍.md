@@ -134,7 +134,7 @@ int listen(int sockfd, int backlog);
 - 无法在一个已连接的socket()上执行listen()
 
 ## 56.5.2 接受连接:accept()
-- accept()系统调用在文件描述符 sockfd 引用的监听流 socket 上接受一个接入连接
+- accept()系统调用在文件描述符 sockfd 引用的 监听流socket 上接受一个接入连接
 - 如果在调用 accept()时不存在未决的连接，那么调用就会阻塞直到有连接请求到达为止
 ```c
 #include <sys/socket.h>
@@ -142,3 +142,66 @@ int listen(int sockfd, int backlog);
 int accept(int sockfd, struct sockaddr *addr, socklen_t addr);
 ```
 - 它会创建一个新 socket， 并且正是这个新 socket 会与执行 connect()的对等socket 进行连接
+- accept()返回的函数是已连接的socket的文件描述符
+- `addr` 参数指向了一个用来返回 socket地址的结构:传入 accept()的剩余参数会返回对端 socket 的地址
+- `addrlen`参数是一个值:执行accept()之前为addr指向的缓冲区的大小,执行accept()后为实际复制进缓冲区中的数据的字节数
+- addr与addrlen可设置为`NULL 和 0`
+
+## 56.5.3 连接到对等的socket:`connect()`
+```c
+#include <sys.socket.h>
+
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+//return 0 on success, or -1
+```
+- connect()系统调用将文件描述符 `sockfd` 引用的 `主动socket` 连接到地址通过 addr 和 addrlen指定的 `监听socket` 上
+- 如果 connect()失败并且希望重新进行连接，那么 SUSv3 规定完成这个任务的可移植的方法是关闭这个 socket，创建一个新 socket，在该新 socket 上重新进行连接
+
+## 56.5.4 流socket I/O
+- 一对连接的流 socket 在两个端点之间提供了一个双向通信信道
+
+![](https://s3.bmp.ovh/imgs/2022/05/23/ac418a2f8d04e99a.png)
+
+
+## 56.5.5 连接终止:close()
+- 如果多个文件描述符引用了同一个socket，那么当`所有`描述符被关闭之后连接就会终止
+- `shutdown()`可以提供更加精细的关闭流的操作
+
+# 56.6 数据报socket
+- 类似于邮政系统
+1. `socket()`系统调用等价于创建一个邮箱(取信和送信都是在邮箱中发生的）所有需要发送和接收数据报的应用程序都需要使用 socket()创建一个数据报 socket。
+2. 为允许另一个应用程序发送其数据报（信），一个应用程序需要使用 `bind()`将其socket 绑定到一个众所周知的地址上。一般来讲，一个服务器会将其 socket 绑定到一个众所周知的地址上，而一个客户端会通过向该地址发送一个数据报来发起通信(在一些 domain中——特别是 UNIX domain——客户端如果想要接受服务器发送来的数据报的话可能还
+需要使用 bind()将一个地址赋给其 socket)
+3. 要发送一个数据报，一个应用程序需要调用 `sendto()`，它接收的其中一个参数是数据
+报发送到的 socket 的地址。这类似于将收信人的地址写到信件上并投递这封信
+4. 为接收一个数据报，一个应用程序需要调用 `recvfrom()`，它在没有数据报到达时会阻塞,由于 recvfrom()允许获取发送者的地址，因此可以在需要的时候发送一个响应
+5. 当不再需要 socket 时，应用程序需要使用 `close()`关闭 socket
+
+- 无法保证数据按发送顺序到达
+- 甚至无法保证到达
+- 数据有可能多次到达
+
+![](https://s3.bmp.ovh/imgs/2022/05/23/09c19c80a10574b3.png)
+
+## 56.6.1 交换数据报:`recvfrom()` / `sendto()`
+```c
+#include <sys/socket.h>
+
+ssize_t recvfrom(int sockfd, void *buf, size_t length, int flags,
+                    struct sockaddr *src_addr, socklen_t addrlen);
+//return number of bytes received,0 on EOF, -1 on error
+
+ssize_t sendto(int sockfd, void *buf, size_t length, int flags,
+                    struct sockaddr *src_addr, socklen_t addrlen);
+// return number of bytes sent, -1 on error
+```
+- 前三个参数与 read()和 write()中的返回值和相应参数一样
+- `flag` 指定I/O特性
+- `src_addr` 和 `addrlen` 参数被用来获取或指定与之通信的对等 socket 的地址
+- 如果不关心发送者的地址，那么可以将 src_addr 和 addrlen 都指定为 `NULL`
+- 不管 length 的参数值是什么， recvfrom()只会从一个数据报 socket 中读取一条消息. 如果消息的大小超过了 length 字节，那么消息会被`静默地截断`为 length 字节
+- Linux上可以使用sendto()发送长度为0的数据报
+
+## 56.6.2 在数据报socket上使用`connect()`
+- 在数据报 socket 上调用 connect()会导致内核记录这个 socket 的对等 socket 的地址
+- 为一个数据报 socket 设置一个对等 socket，这种做法的一个明显优势是在该 socket 上传输数据时可以使用更简单的 I/O 系统调用，即无需使用指定了 dest_addr 和 addrlen 参数的sendto()，而只需要使用 write()即可
