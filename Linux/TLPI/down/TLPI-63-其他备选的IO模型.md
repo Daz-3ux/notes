@@ -130,3 +130,101 @@
     -使用 sigaction()安装信号处理例程时，为前一步中使用的实时信号指定 SA_ SIGINFO标记
 
 # 63.4 epoll 编程接口
+- Linux系统 **专有**!!, 在2.6版新增
+- 优点:
+    - 当检查大量的文件描述符时， epoll 的性能延展性比 select()和 poll()高
+    - epoll API 既支持水平触发也支持边缘触发
+- (相较于信号驱动I/O)
+    - 可以避免复杂的信号处理流程
+    - 灵活性高，可以指定我们希望检查的事件类(检查套接字文件描述符的读就绪、写就绪或者两者同时指定)
+
+- epoll API 的核心数据结构被叫做 **epoll实例**, 其和一个打开的文件描述符相关联
+- 此文件描述符是内核数据结构的句柄,实现了两个目的:
+    - 记录了在进程中声明过的感兴趣的文件描述符列表--`interest list(兴趣列表)`
+    - 维护了处于I/O就绪态的文件描述符列表--`ready list(就绪列表)`
+    - ready list 是 interset list 的子集
+
+- epoll API 由以下三个系统调用组成:
+    - `epoll_create()`:创建一个epoll实例
+    - `epoll_ctl()`:操作同epoll实例相关联的兴趣列表
+    - `epoll_wait`:返回与epoll实例相关联的就绪列表中的成员
+
+## 63.4.1 创建 epoll 实例： `epoll_create()`
+- 创建一个新的epoll实例,其对应的`兴趣列表为空`
+```c
+#include <sys/epoll.h>
+
+int epoll_create(int size);
+//return file descriptor on success, -1 on error
+```
+- 参数size指定我们想要通过epoll实例来检查的文件描述符的个数(已废除不用)
+- 返回代表新创建的 epoll 实例的文件描述符(通过close()关闭)
+- 当所有与 epoll 实例相关的文件描述符都被关闭时，实例被销毁，相关的资源都返还给系统
+- ![](https://raw.githubusercontent.com/Daz-3ux-Img/Img-hosting/master/202206041204363.png)
+
+## 63.4.2 修改 epoll 的兴趣列表： epoll_ctl()
+```c
+#include <sys/epoll.h>
+
+int epoll_ctl(int epfd, int op, struct epoll_event *ev);
+//return 0 on success, -1 on error
+```
+- fd指定了要修改兴趣列表中哪一个文件描述符的设定(`不能作为普通文件或目录的文件描述符`)
+- op指定要执行的操作
+- ev是指向结构体`epoll_event`的指针
+```c
+struct epoll_event{
+    uint32_t events;
+    epoll_data_t data;
+};
+
+typedef union epoll_data{
+    void    *ptr;
+    int      fd;
+    uint32_t u32;
+    uint64_t u64;
+}epoll_data_t;
+```
+- ev做如下设置:
+    - `events`: **位掩码** 指定了我们为待检查的文件描述符fd上所感兴趣的事件集合
+    - `data`: **联合体** 指定传回给调用程序的信息
+
+```c
+in epfd;
+struct epoll_event ev;
+
+epfd = epoll_create(5);
+if(epfd == -1){
+    perror(create);
+}
+
+ev.data.fd = fd;
+ev.events = EPOLLIN;
+if( epoll_ctl(epfd, EPOLL_CTL_ADD, fd, ev) == -1){
+    perror(ctl);
+}
+```
+
+- 内核提供了一个接口用来定义每个用户可以注册到 epoll 实例上的文件描述符总数:`max_user_watches` 是专属于 Linux 系统的/proc/sys/fd/epoll 目录下的一个文件(In My Mint:`3311964`)
+
+## 63.4.3 事件等待： epoll_wait()
+- 返回 epoll 实例中处于就绪态的文件描述符信息
+- `单个` epoll_wait()调用能返回`多个`就绪态文件描述符的信息
+```c
+#include <sys/epoll.h>
+
+int epoll_wait(int epfd, struct epoll_event * evlist, int maxevents, int timeout);
+//return number pf ready file descriptors, 0 on timeout, -1 on error
+```
+- 参数`evlist`所指向的结构体数组中返回的是有关就绪态文件描述符的信息
+- 数组evlist的空间由调用者负责申请,包含的元素个数在maxevents指定
+- 要么将`ev.data.fd`设为文件描述符号，要么将`ev.data.ptr`设为指向包含文件描述符号的结构体
+
+- `timeout`确定epoll_wait()的阻塞行为
+    - timeout == -1 : 一直阻塞,直到兴趣列表中的文件描述符上有事件产生,或者直到捕获到一个信号
+    - 如果 timeout 等于 0，执行一次非阻塞式的检查，看兴趣列表中的文件描述符上产生了哪个事件
+    - 如果 timeout 大于 0，调用将阻塞至多 timeout 毫秒，直到文件描述符上有事件发生，或者直到捕获到一个信号为止
+
+- 调用成功返回evlist中的元素个数
+
+### epoll事件
