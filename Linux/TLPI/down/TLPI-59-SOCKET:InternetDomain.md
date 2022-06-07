@@ -112,6 +112,8 @@ sszie_t readLine(int fd, void *buffer, size_t n);
 - 允许在 IPv4 和 IPv6 地址的二进制形式和点分十进制表示法或十六进制字符串表示法之间进行转换
 
 - 函数名中 `p` 为"**展现(presentati)**", `n` 为 "**网络(network)**"
+![](https://raw.githubusercontent.com/Daz-3ux-Img/Img-hosting/master/202206071617793.png)
+
 
 # 59.8 域名系统 DNS
 - 使用 DNS 来维护 主机名 和 IP地址 之间的映射关系
