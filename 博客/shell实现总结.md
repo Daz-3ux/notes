@@ -33,7 +33,7 @@ xxx@xxx ~ $ exit
     - 代码的`去耦合`与`功能分块`也是一个难点，但这次做的还行
     - 写完之后再回想,想不起来很多当时觉得难的不行的东西了,其实经历完绝望之谷之后,不仅技术会提升,心态也会更好
 
-# 主要函数
+# 框架函数
 ## main()
 - 从main函数入手来剖析我们需要实现的所有功能是一个不错的选择
 ```c
@@ -207,5 +207,344 @@ void do_cmd(int argc, char **argv)
     }
 }
 ```
+- 这个函数就像是一个中转站，将处理完的命令在这里统一识别与处理，一旦发现命令中的“**特征**”，就调用相应的函数，来完成任务
+- 特殊命令处理:
+    - command_with_Pipe(buf)
+    - command_with_OutRe(buf)
+    - command_with_InRe(buf)
+    - command_with_OutRePlus(buf)
+    - command_with_Back(buf)
+- 内置命令的处理：
+    - 不能在子进程中进行的内置命令手动实现
+    - `callcd()`
+    - 可以在子进程进行的内置命令交由`execvp()`函数实现
 
+# 具体函数
+## callcd()
+- 关于`cd - `的实现还有一定的bug,具体的修复我想到了一个绝妙的方法,但这里地方太小我写不下,所以还是交给聪明的读者去修复这个讨厌的bug吧(请先在运行时找到bug)
+```c
+char oldPath[BUFFSIZE]; 
+void callCd(int argc){
+    int result = 1;
+    if(argc == 1) {
+        int ret = chdir("/home");
+        return;
+    }else{
+        int ret = 0;
+        int flag_gang = 0;
+        int flag_piao = 0;
+        int flag;
+        for(int i = 0; COMMAND[1][i]; i++) {
+            if(COMMAND[1][i] == '-'){
+                flag_gang = 1;
+            }
+            if(COMMAND[1][i] == '~'){
+                flag_piao = 1;
+            }
+        }
+        if(flag_gang){// "-"
+            if((ret = chdir(oldPath)) == -1){
+                my_error("chdir",__LINE__);
+            }
+            getcwd(oldPath, BUFFSIZE);
+        }else if(flag_piao){// "~"
+            getcwd(oldPath, BUFFSIZE);
+            char *home;
+            home = getenv("HOME");
+            if((ret = chdir(home)) == -1){
+                my_error("chdir",__LINE__);
+            }
+        }else{
+            getcwd(oldPath, BUFFSIZE);
+            ret = chdir(COMMAND[1]);
+        }
+        if(ret){
+            return;
+        }
+    }
+}
+```
 
+## command_with_OutRe(buf)
+- `dup2()`的使用是实现重定向的灵魂
+- 利用父子进程完成命令的执行与输出(子进程执行命令并输出到文件后关闭,由父进程负责回收)
+```
+void command_with_OutRe(char *buf)
+{//command > file
+    char OutFile[1024];
+    memset(OutFile, 0, BUFFSIZE);
+    int RedNum = 0;
+    for(int i = 0; buf[i]; i++){
+        if(buf[i] == '>'){
+            RedNum++;
+            break;
+        }
+    }
+    if(RedNum != 1){//重定向符号多余1就错误
+        my_error("error num of OutRe",__LINE__);
+    }
+    int fg = 0;
+    for(int i =0;i < argc; i++){//与分割好的命令逐个比较，确定重定向文件
+        if(strcmp(COMMAND[i], ">") == 0){
+            if(i+1 < argc){//因为有argv[argc] == NULL,所以不用<=
+                strcpy(OutFile,COMMAND[i+1]);
+                fg = i-1;
+            }else{
+                my_error("missing output file",__LINE__);
+            }
+        }
+    }
+    for (int j = 0; j < strlen(buf); j++) {
+        if (buf[j] == '>') {
+            buf[j - 1] = '\0';
+            break;
+        }
+    }
+    
+    parse(buf);//重定向符号后面的为文件，所以需要重新解析命令
+    // 子进程执行命令,利用重定向将结果输出到文件中
+    pid_t pid = fork();
+    if(pid < 0){
+        my_error("fork",__LINE__);
+    }
+    if(pid == 0){
+        int fd;
+        fd = open(OutFile, O_RDWR | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR);
+        if(fd < 0){
+            my_error("open",__LINE__);
+        }
+        dup2(fd,STDOUT_FILENO);//灵魂
+        execvp(argv[0], argv);
+        if(fd != STDOUT_FILENO){
+            close(fd);
+        }
+        my_error("fault argu",__LINE__);
+    }else{
+        int status;
+        waitpid(pid, &status, 0);
+        int err = WEXITSTATUS(status);
+        if(err){
+            printf("Error:%s\n",strerror(err));
+        }
+    }
+}
+```
+
+## command_with_InRe(buf)
+- 逻辑与OutRe相同
+- 具体代码请参阅源码,本文不再展示
+
+## command_with_OutRePlus(buf)
+- 执行追加模式的输出重定向
+- 逻辑与OutRe相同
+- 使用`O_APPEND`标志即可
+
+## command_with_Back(buf)
+- 伪后台执行,此处并非后台执行的真正实现
+- 将标准输入与标准输出重定向至`/dev/null`这个特殊的文件夹后再执行命令
+- `/dev/null`:Linux系统的垃圾桶
+void command_with_Back(char *buf)
+{
+    char BackBuf[strlen(buf)];
+    memset(BackBuf, 0, strlen(buf));
+    //提取 & 前的命令
+    for(int i = 0; i < strlen(buf); i++){
+        BackBuf[i] = buf[i];
+        if(buf[i] == '&'){
+            BackBuf[i-1] = '\0';
+            break;
+        }
+    }
+
+    pid_t pid = fork();
+    if(pid < 0){
+        my_error("Fork",__LINE__);
+    }
+
+    if(pid == 0){
+        //FILE *freopen(const chat*pathname, const char*mode, FILE *stream);
+        freopen("/dev/null", "w", stdout); 
+        freopen("/dev/null", "r", stdin);
+        signal(SIGCHLD, SIG_IGN);
+        parse(BackBuf);
+        execvp(argv[0], argv);
+        my_error("execvp",__LINE__);
+    }else{
+        exit(0);//父进程直接退出
+    }
+}
+
+## command_with_Pipe(buf)
+- 整个目标中最难实现的部分
+- 还需搭配`parse_pipe()`函数一起使用
+- 下列代码将附带详细注释
+```c
+void command_with_Pipe(char *buf)
+{
+    int i, j;
+    int cmd_num = 0, pipe_num = 0;
+    int fd[16][2];
+    char *curcmd;
+    char *nextcmd = buf;
+    for (int k = 0; buf[k]; k++){
+        if(buf[k] == '|'){
+            pipe_num++;
+        }
+    }
+    while ((curcmd = strsep(&nextcmd, "|"))){
+        flag_out = 0;
+        flag_in = 0;
+        if(parse_pipe(curcmd, cmd_num++) < 0){
+            cmd_num--;
+            break;
+        }
+        if(cmd_num == 17)//16根管道最多支持17条命令
+            break;
+    }   
+
+    for (i = 0; i < pipe_num; i++){//创建管道
+        if(pipe(fd[i])){
+            my_error("pipe", __LINE__);
+        }
+    }
+
+    pid_t pid;
+    for (i = 0; i <= pipe_num; i++){ //管道数目决定创建子进程个数
+        if((pid = fork()) == 0)
+            break;
+    }
+
+    if(pid == 0){
+        if(pipe_num != 0){
+            if (i == 0){ //第一个创建的子进程
+            //管道的输入为标准输入
+                dup2(fd[0][1], STDOUT_FILENO);
+                close(fd[0][0]);
+
+                for (j = 1; j < pipe_num; j++){
+                    close(fd[j][0]);
+                    close(fd[j][1]);
+                }
+            }else if (i == pipe_num){ //最后一个创建的子进程
+            //管道的输出为标准输出
+                dup2(fd[i-1][0], STDIN_FILENO);
+                close(fd[i-1][1]);
+
+                for (j = 0; j < pipe_num - 1; j++){
+                    close(fd[j][0]);
+                    close(fd[j][1]);
+                }
+            }else{
+                //重定中间进程的标准输入至管道读端
+                dup2(fd[i-1][0], STDIN_FILENO); 
+                close(fd[i-1][1]);
+                //重定中间进程的标准输出至管道写端
+                dup2(fd[i][1], STDOUT_FILENO);
+                close(fd[i][0]);
+
+                for (j = 0; j < pipe_num; j++){ //关闭不使用的管道读写两端
+                    if (j != i || j != (i - 1)){
+                        close(fd[j][0]);
+                        close(fd[j][1]);
+                    }
+                }
+            }
+        }
+        if(flag_in){
+            int file_fd = open(cmd[i].in, O_RDONLY);
+            dup2(file_fd, STDIN_FILENO);
+        }
+        if(flag_out){
+            int file_fd = open(cmd[i].out, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            dup2(file_fd, STDOUT_FILENO);
+        }
+        // else{
+        //     if(strcmp(COMMAND[0],"exit")){
+        //         return 0;
+        //     }
+        // }
+        execvp(cmd[i].argv[0], cmd[i].argv); //执行用户输入的命令
+        my_error("execvp",__LINE__);
+    }else{// parent
+    //关闭父进程两侧管道
+        for (i = 0; i < pipe_num; i++){
+                close(fd[i][0]);
+                close(fd[i][1]);
+            }
+        for(int i = 0; i < cmd_num; i++){
+            wait(NULL);
+        }
+    }
+}
+```
+
+### parse_pipe()
+```c
+int flag_out = 0;
+int flag_in = 0 ;
+int parse_pipe(char *buf,int cmd_num)
+{
+    int n = 0;
+    char *p = buf;
+    cmd[cmd_num].in = NULL;
+    cmd[cmd_num].out = NULL;
+    while(*p != '\0'){
+        if(*p == ' '){
+            *p++ = '\0';
+            continue;
+        }
+        if(*p == '<'){
+            *p = '\0';
+            flag_in = 1;
+            while(*(++p) == ' '){
+                ;
+            }
+            cmd[cmd_num].in = p;
+            continue;
+        }
+        if(*p == '>'){
+            *p = '\0';
+            flag_out = 1;
+            while(*(++p) == ' ');
+            cmd[cmd_num].out = p;
+            continue;
+        }
+        if(*p != ' ' && ((p == buf) || *(p-1) == '\0')){
+            if(n < MAX_CMD){
+                cmd[cmd_num].argv[n++] = p++;
+                continue;
+            }else{
+                return -1;
+            }
+        }
+        ++p;
+    }
+    if(n == 0){
+        return -1;
+    }
+    return 0;
+}
+```
+
+# 信号处理 与 错误处理
+- 使用`signal()`调用屏蔽所有信号
+```c
+void my_signal()
+{
+    signal(SIGHUP, SIG_IGN);
+    signal(SIGINT, SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
+}
+```
+
+- 输出错误原因与行号
+```c
+void my_error(char *string, int line)
+{// 用法示例: myerror("malloc", __LINE__);
+    fprintf(stderr, "Line:%d,error:\n", line);
+    fprintf(stderr, "%s:%s\n", string, strerror(errno));
+    printf("***********************\n");
+}
+```
