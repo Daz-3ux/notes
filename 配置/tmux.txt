@@ -1,0 +1,16 @@
+et -g prefix `
+unbind C-b
+bind ` send-prefix
+
+set -g base-index 1
+setw -g pane-base-index 1
+
+bind | split-window -h
+bind - split-window -v
+
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+set-option -g mouse on
