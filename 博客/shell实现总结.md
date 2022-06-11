@@ -221,7 +221,7 @@ void do_cmd(int argc, char **argv)
 
 # 具体函数
 ## callcd()
-- 关于`cd - `的实现还有一定的bug,具体的修复我想到了一个绝妙的方法,但这里地方太小我写不下,所以还是交给聪明的读者去修复这个讨厌的bug吧(请先在运行时找到bug)
+- 关于`cd - `的实现还有一定的bug,具体的修复我想到了一个绝妙的方法,但这里地方太小我写不下,所以还是交给聪明的读者去修复这个讨厌的bug吧
 ```c
 char oldPath[BUFFSIZE]; 
 void callCd(int argc){
@@ -383,14 +383,16 @@ void command_with_Pipe(char *buf)
 {
     int i, j;
     int cmd_num = 0, pipe_num = 0;
+    //使用二维数组将fd符存储起来,pipe()函数支持传入一个数组
     int fd[16][2];
     char *curcmd;
     char *nextcmd = buf;
     for (int k = 0; buf[k]; k++){
-        if(buf[k] == '|'){
+        if(buf[k] == '|'){//统计多重管道具体数目
             pipe_num++;
         }
     }
+    //使用strsep命令分割命令
     while ((curcmd = strsep(&nextcmd, "|"))){
         flag_out = 0;
         flag_in = 0;
@@ -450,19 +452,14 @@ void command_with_Pipe(char *buf)
                 }
             }
         }
-        if(flag_in){
+        if(flag_in){//用户指定了输入重定向
             int file_fd = open(cmd[i].in, O_RDONLY);
             dup2(file_fd, STDIN_FILENO);
         }
-        if(flag_out){
+        if(flag_out){//用户使用了输出重定向
             int file_fd = open(cmd[i].out, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             dup2(file_fd, STDOUT_FILENO);
         }
-        // else{
-        //     if(strcmp(COMMAND[0],"exit")){
-        //         return 0;
-        //     }
-        // }
         execvp(cmd[i].argv[0], cmd[i].argv); //执行用户输入的命令
         my_error("execvp",__LINE__);
     }else{// parent
@@ -479,6 +476,7 @@ void command_with_Pipe(char *buf)
 ```
 
 ### parse_pipe()
+- 为多重管道的实现提供基础,管道符两侧可加空格也可不加空格
 ```c
 int flag_out = 0;
 int flag_in = 0 ;
@@ -493,6 +491,7 @@ int parse_pipe(char *buf,int cmd_num)
             *p++ = '\0';
             continue;
         }
+        //判断管道是否需要与重输出重输出搭配使用
         if(*p == '<'){
             *p = '\0';
             flag_in = 1;
@@ -509,6 +508,7 @@ int parse_pipe(char *buf,int cmd_num)
             cmd[cmd_num].out = p;
             continue;
         }
+        //去除空格
         if(*p != ' ' && ((p == buf) || *(p-1) == '\0')){
             if(n < MAX_CMD){
                 cmd[cmd_num].argv[n++] = p++;
@@ -527,7 +527,7 @@ int parse_pipe(char *buf,int cmd_num)
 ```
 
 # 信号处理 与 错误处理
-- 使用`signal()`调用屏蔽所有信号
+- 使用`signal()`调用忽略所有信号
 ```c
 void my_signal()
 {
@@ -548,3 +548,9 @@ void my_error(char *string, int line)
     printf("***********************\n");
 }
 ```
+
+-----
+# 参考:
+1. 《UNIX/Linux编程实践教程》
+2. 《TLPI》
+3. [Linux——实现简单的交互式shell](https://blog.csdn.net/xiaoan08133192/article/details/105099371)
