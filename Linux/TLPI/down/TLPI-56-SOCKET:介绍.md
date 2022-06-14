@@ -1,15 +1,15 @@
-
 # 56.1 概述
-- `socket` 是一种IPC方法(进程间通信):它允许位于同一主机或使用网络连接起来的不同主机上的应用程序之间交换数据
+- `socket` 是一种`IPC方法`(进程间通信):它允许位于同一主机或使用网络连接起来的不同主机上的应用程序之间交换数据
 
 在一个典型的`服务端/客户端`场景中,应用程序使用socket进行通信的方法如下:
-- 各个应用程序创建一个socket
+- 各个应用程序创建一个socket(`socket是一个允许通信的“设备”`)
 - 服务器将自己的socket绑定到一个众所周知的地址上使得客户端可以定位到它的位置
+- 使用`socket()`系统调用能够创建一个socket,返回一个引用该socket的`文件描述符`
 
 ## 通信domain
 - socket 存在于一个 `通信domain` 中，它确定：
     - 识别出一个 socket 的方法（即 socket“地址”的格式）；
-    - 通信范围
+    - 通信范围(同一主机或同一网络)
 
 - 现代操作系统至少支持下列 domain
     - UNIX (AF_UNIX) domain 允许在同一主机上的应用程序之间进行通信
@@ -41,7 +41,7 @@
     - 可靠的：表示可以保证发送者传输的数据会完整无缺地到达接收应用程序（假设网络
 链接和接收者都不会崩溃）或收到一个传输失败的通知
     - 双向的：表示数据可以在两个 socket 之间的任意方向上传输。
-    - 字节流：表示与管道一样不存在消息边界的概念
+    - 字节流：表示`与管道一样`不存在消息边界的概念
 - 一个流 socket 类似于使用一对允许在两个应用程序之间进行双向通信的管道，它们之间
 的差别在于（ Internet domain） socket 允许在网络上进行通信。
 - 面向连接: 流 socket 的正常工作需要一对 **相互连接** 的 socket
@@ -62,6 +62,8 @@
     - `listen()` 系统调用允许一个 流socket 接受来自其他 socket 的接入连接
     - `accept()` 系统调用在一个 监听流socket 上接受来自一个对等应用程序的连接， 并可选地返回对等 socket 的地址
     - `connect()` 系统调用建立与另一个 socket 之间的连接
+    - 在大多数Linux系统架构中,这些调用都被实现为对`socketcall()`进行`多路复用`的库函数
+    - 。通过使用 `fcntl()` `F_SETFL操作` 来启用 `O_NONBLOCK` 打开文件状态标记可以执行`非阻塞 I/O`
 
 # 56.2 创建一个socket:`socket()`
 ```c
@@ -74,7 +76,7 @@ int socket(int domain, int type, int protocol);
 - type:
     - 流socket:`SOCK_STREAM`
     - 数据报socket:`SOCK_DGRAM`
-- protocol:一般置0
+- protocol:绝大多数情况置为`0`即可(裸socket为一种特殊情况)
 
 # 56.3 将socket绑定到地址:`bind()`
 ```c
@@ -88,23 +90,27 @@ int bind(int sockfd, const struct socladdr *addr, socket_t addrlen);
 - addrlen:指定地址结构的大小(socket_t为整数类型)
 
 - 一般来讲，会将一个服务器的 socket 绑定到一个众所周知的地址
+- 对于一个 `Internet domain socket` 来讲，服务器可以不调用 bind()而直接调用 listen()，这将会导致 **内核为该 socket 选择一个临时端口**
 
-# 56.4 通用的socket地址结构:struct sockaddr
+# 56.4 `通用的`socket地址结构:struct sockaddr
 -  bind()之类的系统调用适用于所有 socket domain,因此它们必须要能够接受任意类型的地址结构:为支持这种行为， socket API 定义了一个通用的地址结构 `struct sockaddr`
+-  `struct sockaddr`:将各种 domain 特定的地址结构转换成单个类型以供 socket 系统调用中的各个参数使用(用的时候强制类型转换为自己需要的那一种)
 ```c
 struct sockaddr{
     sa_family_t sa_family;      // Address family
     char        sa_data[14];    // Socket address
 }
 ```
+- 这个结构是所有 domain 特定的地址结构的模板
+- 通过 family 字段的值足以确定存储在这个结构的`剩余部分`中的地址的大小和格式(每个地址结构均以family字段打头)
 
 # 56.5 流socket
-- 流 socket 的运作与电话系统类似。
+- 流 socket 的运作与`电话系统`类似
 1. socket()系统调用将会创建一个 socket，这等价于安装一个电话。为使两个应用程序能够通信，每个应用程序都必须要创建一个 socket
 2. 通过一个流 socket 通信类似于一个电话呼叫。 一个应用程序在进行通信之前必须要将
 其 socket 连接到另一个应用程序的 socket 上。两个 socket 的连接过程如下:
     - 一个应用程序调用 bind()以将 socket 绑定到一个众所周知的地址上，然后调用
-listen()通知内核它接受接入连接的意愿。这一步类似于已经有了一个为众人所知
+listen()`通知内核它接受接入连接的意愿`。这一步类似于已经有了一个为众人所知
 的电话号码并确保打开了电话，这样人们就可以打进电话了
     - 其他应用程序通过调用 connect()建立连接，同时指定需连接的 socket 的地址。这类似于拨某人的电话号码
     - 调用 listen()的应用程序使用 accept()接受连接。这类似于在电话响起时拿起电话。如果在对等应用程序调用 connect()之前执行了 accept()，那么 accept()就会`阻塞`(“等待电话”)
@@ -120,7 +126,7 @@ listen()通知内核它接受接入连接的意愿。这一步类似于已经有
 - **服务器会执行被动式打开 , 而客户端会执行主动式打开**
 
 ## 56.5.1 监听接入:listen()
-- 将 sockfd 引用的 流socket 标记为 `被动`
+- 将 sockfd 引用的 流socket 标记为 `被动`:被用来接受来自其他主动的socket的连接
 ```c
 #include <sys/socket.h>
 
@@ -133,17 +139,18 @@ int listen(int sockfd, int backlog);
 
 ## 56.5.2 接受连接:accept()
 - accept()系统调用在文件描述符 sockfd 引用的 监听流socket 上接受一个接入连接
-- 如果在调用 accept()时不存在未决的连接，那么调用就会阻塞直到有连接请求到达为止
+- 如果在调用 accept()时`不存在未决的连接`，**那么调用就会阻塞直到有连接请求到达为止**
 ```c
 #include <sys/socket.h>
 
 int accept(int sockfd, struct sockaddr *addr, socklen_t addr);
 ```
-- 它会创建一个新 socket， 并且正是这个新 socket 会与执行 connect()的对等socket 进行连接
-- accept()返回的函数是已连接的socket的文件描述符
+- 它会`创建一个新 socket`， 并且正是这个新 socket 会与执行 connect()的`对等`socket 进行连接
+- accept()返回的函数是`已连接的socket的文件描述符`
 - `addr` 参数指向了一个用来返回 socket地址的结构:传入 accept()的剩余参数会返回对端 socket 的地址
-- `addrlen`参数是一个值:执行accept()之前为addr指向的缓冲区的大小,执行accept()后为实际复制进缓冲区中的数据的字节数
+- `addrlen`参数是一个值-结果参数:执行accept()之`前`为`addr指向的缓冲区的大小`,执行accept()`后`为`实际复制进缓冲区中的数据的字节数`
 - addr与addrlen可设置为`NULL 和 0`
+- 如果不关心对等 socket 的地址，那么可以将 addr 和 addrlen 分别指定为 NULL 和 0
 
 ## 56.5.3 连接到对等的socket:`connect()`
 ```c
@@ -197,9 +204,11 @@ ssize_t sendto(int sockfd, void *buf, size_t length, int flags,
 - `flag` 指定I/O特性
 - `src_addr` 和 `addrlen` 参数被用来获取或指定与之通信的对等 socket 的地址
 - 如果不关心发送者的地址，那么可以将 src_addr 和 addrlen 都指定为 `NULL`
-- 不管 length 的参数值是什么， recvfrom()只会从一个数据报 socket 中读取一条消息. 如果消息的大小超过了 length 字节，那么消息会被`静默地截断`为 length 字节
+- 不管 length 的参数值是什么， recvfrom()只会从一个数据报 socket 中读取一条消息. **如果消息的大小超过了 length 字节**，那么消息会被`静默地截断`为 length 字节
 - Linux上可以使用sendto()发送长度为0的数据报
 
 ## 56.6.2 在数据报socket上使用`connect()`
-- 在数据报 socket 上调用 connect()会导致内核记录这个 socket 的对等 socket 的地址
+- 在数据报 socket 上调用 connect()会`导致内核记录这个 socket 的对等 socket 的地址`
+- 已连接的数据报socket:调用了`connect()`的数据包socket
+- 非连接的数据包socket:没有调用`connect()`的数据包socket(新数据包socket的默认行为)
 - 为一个数据报 socket 设置一个对等 socket，这种做法的一个明显优势是在该 socket 上传输数据时可以使用更简单的 I/O 系统调用，即无需使用指定了 dest_addr 和 addrlen 参数的sendto()，而只需要使用 write()即可
