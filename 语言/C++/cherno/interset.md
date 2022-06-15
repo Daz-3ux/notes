@@ -96,3 +96,35 @@ int main()
 - `拷贝构造函数`:
     - 可使用`delete`禁用
     - 使用其手动执行深拷贝
+
+# C++的箭头操作符
+- `->`
+- 可以重载
+- 可以获取变量的偏移量
+```cpp
+#include <iostream>
+#include <string>
+
+struct Vector3
+{
+    float x,y,z;
+};
+
+int main()
+{
+    int offset1 = (int)&((Vector3*)nullptr) -> x;
+    int offset2 = (int)&((Vector3*)nullptr) -> y;
+    int offset3 = (int)&((Vector3*)nullptr) -> z;
+    
+    std::cout << offset1 << std::endl;
+    std::cout << offset2 << std::endl;
+    std::cout << offset3 << std::endl;
+}
+```
+
+# C++动态数组
+- vector
+- 叫做向量很奇怪,准确叫应该是ArrayList才对
+- 动态数组是内存连续的数组,一条高速缓存线
+- vector的扩容策略与编译器有关,没有标准化
+- vector的优化即为`revise()`和`emplace_back()`
