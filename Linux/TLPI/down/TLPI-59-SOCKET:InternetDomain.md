@@ -107,8 +107,15 @@ sszie_t readLine(int fd, void *buffer, size_t n);
 - 格式之间的转换工作可以通过各种库函数来完成(分`现代API` 和 `废弃的API`)
 
 - 在二进制和人类可读的形式之间转换 IPv4 地址
+    - inet_aton()和 inet_ntoa()函数:`已过时`
+
 - 在二进制和人类可读的形式之间转换 IPv6 地址
+    - inet_pton()和 inet_ntop()与 inet_aton()和 inet_ntoa()类似，但它们还能处理 IPv6 地址。它们将二进制 IPv4 和 IPv6 地址转换成展现格式—即以点分十进制表示或十六进制字符串表示， 或将展现格式转换成二进制 IPv4 和 IPv6 地址
+
 - 主机和服务名与二进制形式之间的转换
+    - gethostbyname()函数返回与主机名对应的二进制 IP 地址， getservbyname()函数返回与服务名对应的端口号:`已过时`
+    - getaddrinfo()函数是 gethostbyname()和 getservbyname()两个函数的`现代继任者`
+    - 给定一个`主机名和一个服务名`， getaddrinfo()会返回一组包含对应的`二进制IP 地址和端口号`的结构
 
 # 59.6 `inet_pton()` 和 `inet_btop()` 函数
 - 允许在 IPv4 和 IPv6 地址的二进制形式和点分十进制表示法或十六进制字符串表示法之间进行转换
