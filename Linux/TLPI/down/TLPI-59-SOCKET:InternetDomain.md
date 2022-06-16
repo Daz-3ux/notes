@@ -20,7 +20,7 @@
 - 网络中使用的标准字节序为 `网络字节序` , 是 `大端`
 
 ## 在 主机字节序 和 网络字节序 之间转换
-- `htons()`、 `htonl()`、 `ntohs()`以及 `ntohl()`函数被定义（通常为宏）用来在主机和网络字节序之间转换整数
+- `htons()`、 `htonl()`、 `ntohs()`以及 `ntohl()`函数被定义（通常为宏）用来`在主机和网络`字节序之间转换整数
 
 ```c
 #include <arpa/inet.h>
@@ -39,7 +39,7 @@ uint32_t ntohl(uint32_t net_uint32);
 ```
 
 - 程序员应该总是使用这些函数，这样程序就能够在不同的硬件结构之间移植了
-- 在主机字节序与网络字节序相同的系统上, 这些函数只是简单返回传递给他们的参数
+- 在**主机字节序与网络字节序** `相同`的系统上, 这些函数只是简单返回传递给他们的参数
 
 # 59.3 数据表示
 - 由于在数据表现上存在差异，因此在网络中的`异构系统`之间交换数据的应用程序必须要采用一些`公共规则`来编码数据
@@ -71,6 +71,7 @@ sszie_t readLine(int fd, void *buffer, size_t n);
 
 ![](https://raw.githubusercontent.com/Daz-3ux-Img/Img-hosting/master/202205241336887.png)
 
+
 ## 调配 和 回环 地址
 - IPv4 与 IPv6 均有 通配与回环地址
 - IPv6 `通配地址`: 0::0
@@ -87,7 +88,8 @@ sszie_t readLine(int fd, void *buffer, size_t n);
 - IPv6 `环回地址`: ::1
 - 其对应的常量与变量:`IN6ADDR_LOOPBACK_INIT` 和 `in6addr_loopback`
 
-- IPv6 与 IPv4 中相应字段不同的是:IPv6的常量和变量初始化是网络字节序的,但开发人员仍需保证端口号是网络字节序的
+- IPv6 与 IPv4 中`相应字段`不同的是:IPv6的`常量和变量初始化`是`网络字节序`的,但开发人员仍需保证端口号是网络字节序的
+- 若IPv4与IPv6共存于一台主机上,那么他们将共享同一个端口号空间
 
 ## `sockaddr_storage` 结构
 - 在 IPv6 socket API 中新引入了一个通用的 sockaddr_storage 结构，这个结构的空间足以**存储任意类型**的 socket 地址
