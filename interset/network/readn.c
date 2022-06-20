@@ -35,8 +35,7 @@ ssize_t readn(int fd, void *buffer, size_t n)
             }
         }
         totRead += numRead;
-        buf += numRead;
-
+        buf += numRead;     // offset
     }
 
     return totRead;         // must be 'n' Bytes if we get here
