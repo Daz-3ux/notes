@@ -153,3 +153,35 @@ int main()
 - 模板并不真实存在,只有当我们实际调用他的时候,模板才会被真正构建
 - `typename`与class都可以用于指定模板名
 - 可以使用模板,但记得当个人
+```c
+#include <iostream>
+#include <string>
+
+template<typename T>
+void Print(T value)
+{
+    std::cout << value << std::endl;
+}
+
+template<typename T, int N>
+class Array
+{
+private:
+    T m_Array[N];
+public:
+    int GetSize() const { return N; }
+};
+
+int main(int argc, char** argv)
+{
+    Print(5);
+    Print<int>(6);
+    Print("Hello,World");
+    Print(5.5f);
+
+    Array<std::string, 1008611> array;
+    std::cout << array.GetSize() << std::endl;
+
+    std::cin.get();
+}
+```

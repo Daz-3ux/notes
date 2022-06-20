@@ -1,13 +1,20 @@
 # 61.1 流式套接字上的部分读和部分写
-- 如果出现了部分 I/O 现象--例如：
-    - read()返回的字节数少于请求的数量
-    - 阻塞式的 write()调用在完成了部分数据传输后被信号处理例程中断
+- 部分 I/O 现象：
+    - read():
+        - 可用数据比read()请求的数据少,此时read()返回可用的字节数
+    - write():
+        - write()传输了部分请求的字节后被信号处理进程中断
+        - 套接字工作在非阻塞模式下(`O_NONBLOCK`),`可能`只传输一部分
+        - 在部分请求的字节已经完成传输后出现了一个异步错误
 - 有时候需要重新调用系统调用来完成全部数据的传输
 
+- `readen()`和`writen()`
+    - 使用`循环`来重新启用这些系统调用,确保了请求的字节数总是可以得到`全部传输`
+    - 自己编写
 
 
 # 61.2 shutdown()系统调用
-- 在套接字上调用close()会将双向通信通道的两端都关闭
+- 在套接字上调用close()会将双向通信通道的`两端都关闭`
 - shutdown()可以只关闭一端
 ```c
 #include <sys/socket.h>
@@ -16,6 +23,7 @@ int shutdown(int sockfd, int how);
 //return 0 on success, -1 on error
 ```
 - 系统调用 shutdown()可以根据参数 how 的值选择关闭套接字通道的一端还是两端
+- shutdown()最常用的操作是`SHUT_WR`:关闭连接的写端, 称其为`半关闭套接字`
 - shutdown()不会关闭文件描述符,要关闭文件描述符只能另外调用close()
 
 # 61.3 专用于套接字的 I/O 系统调用： `recv()` 和 `send()`
@@ -23,12 +31,19 @@ int shutdown(int sockfd, int how);
 - 提供了专属于套接字的功能
 
 # 61.4 sendfile()系统调用
-- 像 Web 服务器和文件服务器这样的应用程序常常需要将磁盘上的文件内容不做修改地通过（已连接）套接字传输出去
-    - 循环read() + write()
+- 像 Web 服务器和文件服务器这样的应用程序常常需要将磁盘上的文件内容`不做修改地通过（已连接）套接字传输出去`
+    - `循环`read() + write() (在传输大文件时不够高效)
     - 使用sendfile()
-- 当应用程序调用 sendfile()时，文件内容会直接传送到套接字上，而不会经过用户空间
+- 当应用程序调用 sendfile()时，`文件内容会直接传送到套接字上，而不会经过用户空间`
 - 这种技术被称为`零拷贝传输（ zero-copy transfer）`
 ![](https://raw.githubusercontent.com/Daz-3ux-Img/Img-hosting/master/202205271753085.png)
+
+```c
+#include <sys/sendfile.h>
+
+sszie_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);
+```
+- 我们可以使用sendfile()`将数据从文件传到套接字`,但反过来不可以
 
 # 61.5 获取套接字地址
 - `getsockname()`:返回`本地`套接字地址
