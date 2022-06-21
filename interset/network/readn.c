@@ -1,9 +1,9 @@
 /*
-    readn() 的参数与read相同
+    readn() 的参数与read()相同
     循环使用了read()系统调用
     确保请求的字节数总是能够得到全部传输
     ssize_t readn(int fd, void *buffer, size_t count);
-    return number of bytes read, o on EOF, -1 on failure
+    return number of bytes read, 0 on EOF, -1 on failure
 */
 
 #include <unistd.h>
