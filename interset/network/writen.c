@@ -18,7 +18,7 @@ ssize_t writen(int fd, void *buffer, size_t n)
     */
     ssize_t numWritten;         //  * of Bytes fetched by last read()
     size_t totWritten;          // Total * of bytes read so far
-    const char *buf;
+    char *buf;
 
     buf = buffer;
     for(totWritten = 0; totWritten < n; ){
@@ -36,7 +36,7 @@ ssize_t writen(int fd, void *buffer, size_t n)
         buf += numWritten;
     }
 
-    return totWritten;           // must be 'n' Bytes if we get here
+    return totWritten;         // must be 'n' Bytes if we get here
 }
 
 int main(int argc, char **argv)
