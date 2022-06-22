@@ -185,3 +185,31 @@ int main(int argc, char** argv)
     std::cin.get();
 }
 ```
+
+# C++堆与栈内存的区别
+- 栈就是把变量堆叠在一起，所以分配的非常快（分配移动栈指针，完成后返回栈指针）
+- new实际上调用的是`malloc`,当需要分配空间时,系统浏览空闲列表,找到一块符合的空闲空间,返回指针
+- 尽量在栈上分配
+- 在堆上分配的唯一理由就是栈不够了
+
+# C++的宏
+- 借助预处理器实现一定的自动化
+- 纯文本替换
+- 编写有用的宏,不要写莫名其妙
+- 对调试很有用
+- `g++ macro.c -o sl -D PR_DEBUG`
+```c
+// hong.c
+#include <iostream>
+
+#ifdef PR_DEBUG
+#define LOG(X) std::cout << X << std::endl;
+#else
+#define LOG(X)
+#endif
+
+int main() {
+    LOG("Hello, world!");
+    std::cin.get();
+}
+```
