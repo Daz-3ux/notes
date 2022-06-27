@@ -196,6 +196,21 @@ static void test_parse() {
 }
 ```
 
+### demo
+```c
+static int lept_parse_true(lept_context* c, lept_value* v) {
+    /* 匹配验证首字符 */
+    EXPECT(c, 't');
+    /* 验证首字符时有一个字符的偏移量,所以从[0]开始 */
+    if (c->json[0] != 'r' || c->json[1] != 'u' || c->json[2] != 'e')
+        return LEPT_PARSE_INVALID_VALUE;
+    c->json += 3;
+    v->type = LEPT_TRUE;
+    return LEPT_PARSE_OK;
+}
+```
+- 
+
 ---
 - 第一章的实现到这里就结束了,都是一些很基础的内容,但果然还是写出来才能感觉更通透一点
 
