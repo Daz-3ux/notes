@@ -219,3 +219,23 @@ int main() {
 - 在处理巨长的类型名且不使用using  / typedef 的时候很有用
 - 会降低可读性,能少用就少用
 - 尽量不要把代码搞得复杂到不得不用`auto`
+
+# C++的静态数组
+- 大小固定
+    - 大小就储存在源码代码段里,名称是`_size`,使用.size()就是简单返回`_size`这个参数
+- 存储在`栈`中 
+- 相较于C数组：
+    - array为一个类，我们可以访问它的大小`data.size()`
+    - 支持迭代器`begin()`,`end()`
+    - 有边界检查
+```cpp
+template<typename T>
+void PrintfArray(const T &data) {
+    for(int i = 0; i < data.size(); i++) {
+        std::cout << data[i] << std::endl;
+    }
+}
+```
+
+
+# C++的函数指针
