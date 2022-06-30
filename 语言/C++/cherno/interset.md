@@ -303,7 +303,7 @@ int main(int argc, char **argv)
     - 例如`=`为值传递, `&`为引用传递
 - 只要有一个函数指针,都可以在C++中使用lambda
 - 不需要通过函数定义就可以定义一个函数的方法
-- 
+- `非捕获`lambda可以`隐式`转换为函数指针, 而有捕获lambda不可以
 
 ```cc
 #include <iostream>
@@ -330,3 +330,13 @@ int main(int argc, char **argv)
     std::cin.get();
 }
 ```
+
+# 为什么不使用`namespace std`
+- 题外话:
+    - 帕斯卡命名法:首字母大写,中间不能有空格或下划线
+    - 驼峰:首字母小写
+    - 蛇形:全小写,下划线连接(C++标准库喜欢这么写)
+
+- 易混淆,bug不宜追踪,可读性差
+
+- 永远别在头文件中使用using namespace
