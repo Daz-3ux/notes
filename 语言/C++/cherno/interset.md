@@ -239,3 +239,94 @@ void PrintfArray(const T &data) {
 
 
 # C++的函数指针
+- 函数指针:将一个函数赋值给一个变量,可以将函数作为参数传递给其他函数
+- 函数是CPU指令
+- 使用auto赋值就很方便
+- `void(*cherno)() = this_is_a_functionName`
+```cc
+#include <iostream>
+#include <vector>
+
+void PrintValue(int value)
+{
+    std::cout << "value: " << value << std::endl;
+}
+
+
+void ForEach(const std::vector<int>& values, void(*func)(int)) 
+{
+    for(int value : values) {
+        func(value);
+    }
+}
+
+
+int main(int argc, char **argv)
+{
+    std::vector<int> values = {1, 2, 3, 4, 5};
+    ForEach(values, PrintValue);
+
+    std::cin.get();
+}
+```
+
+# C++的lambda
+```cc
+#include <iostream>
+#include <vector>
+
+// void PrintValue(int value)
+// {
+//     std::cout << "value: " << value << std::endl;
+// }
+
+
+void ForEach(const std::vector<int>& values, void(*func)(int)) 
+{
+    for(int value : values) {
+        func(value);
+    }
+}
+
+
+int main(int argc, char **argv)
+{
+    std::vector<int> values = {1, 2, 3, 4, 5};
+//    ForEach(values, PrintValue);
+    ForEach(values, [](int value) {std::cout << "value: " << value << std::endl;} )
+
+    std::cin.get();
+}
+```
+- '`[]`':捕获方式
+    - 说明传递变量的方式
+    - 例如`=`为值传递, `&`为引用传递
+- 只要有一个函数指针,都可以在C++中使用lambda
+- 不需要通过函数定义就可以定义一个函数的方法
+- 
+
+```cc
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <functional>
+
+void ForEach(const std::vector<int> &values, const std::function<void(int)> & func)
+{
+    for(int value : values) {
+        func(value);
+    }
+}
+
+int main(int argc, char **argv) 
+{
+    std::vector<int> values = {1,2, 3, 4, 5};
+    int a = 5;
+    // 值捕获
+    auto lambda = [=](int value){ std::cout<<"value: " << a << std::endl; };
+
+    ForEach(values, lambda);
+
+    std::cin.get();
+}
+```
