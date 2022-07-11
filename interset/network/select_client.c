@@ -4,22 +4,6 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-ssize_t readn(int fd, char *buf, size_t size) {
-    char *p = buf;
-    int count = size;
-    while (count > 0) {
-        int len = recv(fd, p, count, 0);
-        if(len == -1) {
-            return -1;
-        }else if(len == 0) {
-            return size - count;
-        }
-        p += len;
-        count -= len;
-    }
-    return size;
-}
-
 int main(int argc, char **argv)
 {
   // 套接字创建
@@ -46,7 +30,7 @@ int main(int argc, char **argv)
   while(1) {
     fgets(recvBuf, sizeof(recvBuf), stdin);
     write(fd, recvBuf, strlen(recvBuf)+1);
-    readn(fd, recvBuf, sizeof(recvBuf));
+    read(fd, recvBuf, sizeof(recvBuf));
     printf("recvBuf: %s\n", recvBuf);
     //sleep(1);
   }

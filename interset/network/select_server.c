@@ -58,7 +58,7 @@ void *communication(void *arg) {
   }
   printf("after buf = %s\n", buf);
 
-  int ret = send(info->fd, buf, sizeof(buf) + 1, 0);
+  int ret = send(info->fd, buf, strlen(buf) + 1, 0);
   if (ret == -1) {
     perror("send error");
     exit(1);
