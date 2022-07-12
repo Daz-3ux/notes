@@ -44,3 +44,5 @@ int epoll_wait(int epfd, struct epoll_event *event, int maxevents, int timeout);
   - 当写缓冲区可写,写事件只触发`一次`
   - 写缓冲区从不满到被写满,期间写事件只触发一次
   - 写缓冲区从满到不满,状态变为可写,写事件只会被触发一次
+
+# 基于多线程的边缘非阻塞处理

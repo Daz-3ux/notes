@@ -94,20 +94,20 @@ int main(int argc, char **argv) {
             epoll_ctl(epfd, EPOLL_CTL_DEL, fd, NULL);
             break;
           }
-        }
 
-        printf("origin buf: %s\n", buf);
-        for (int i = 0; i < len; i++) {
-          buf[i] = toupper(buf[i]);
-        }
-        // printf("last buf: %s\n", buf);
-        write(STDOUT_FILENO, buf, len);
-        //printf("\n");
+          printf("origin buf: %s\n", buf);
+          for (int i = 0; i < len; i++) {
+            buf[i] = toupper(buf[i]);
+          }
+          // printf("last buf: %s\n", buf);
+          write(STDOUT_FILENO, buf, len);
+          // printf("\n");
 
-        ret = send(fd, buf, strlen(buf) + 1, 0);
-        if (ret == -1) {
-          perror("send error");
-          exit(1);
+          ret = send(fd, buf, strlen(buf) + 1, 0);
+          if (ret == -1) {
+            perror("send error");
+            exit(1);
+          }
         }
       }
     }
