@@ -30,7 +30,7 @@
 
 - 存储结构：
 1. 顺序存储：
-    - 对于完全二叉树：根节点下标是x，左孩子永远是2x,右孩子永远是2x + 1（x为零时加1再算）
+    - 对于完全二叉树：根节点下标是`x`，左孩子永远是`2x`,右孩子永远是`2x+1`
     - 对于斜树：上述规律不再有效，会产生太多无用空间，所以顺序存储结构不是很好用
 2. 链式存储：
     - 指向左孩子的左指针，存放数据，指向右孩子的右指针
@@ -51,7 +51,28 @@ SHOW ME THE CODE
     - 中序遍历：左中右
     - 后序遍历：左右中
 2. 队列：
-    - 可以实现层序输出
+    - 可以实现`层序输出`
+```c
+void leverOrder(Node *tree)
+{
+  initQueue();
+  if(tree != NULL) {
+    insertQueue(tree->key);
+  }
+
+  while(!queueIsEmpty()) {
+    int temp = delete_queue();// 元素出队
+    get_node(root, temp);
+    printf("%d", temp);
+    if(tempNode->leftChild) {
+      insertQueue(tempNode->leftChild->key);
+    }
+    if(tempNode->rightChild) {
+      insertQueue(tempNode->rightChild->key);
+    }
+  }
+}
+```
 
 
 
