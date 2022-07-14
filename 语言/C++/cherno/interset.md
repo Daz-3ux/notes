@@ -367,3 +367,9 @@ int main(int argc, char **argv)
 - 数组的数组的数组...
 - 易造成`内存碎片化`,导致`cache miss`(缓存不命中),拖慢运行速度
 - 如果code时将`内存集中`(一种重要的优化),就可以增加更多的`cache hits`(缓存命中)以及更少的cache miss,程序会更快
+
+# C++的排序
+- `#include <algorithm>`
+-  lambda是一个控制排序规则的好选择
+
+# C++的类型双关
