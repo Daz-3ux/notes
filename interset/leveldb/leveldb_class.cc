@@ -57,6 +57,7 @@ public:
     {
       std::cout << it->key().ToString() << ": " << it->value().ToString() << std::endl;
     }
+    delete it;
   }
 };
 
