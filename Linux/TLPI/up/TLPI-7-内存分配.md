@@ -31,3 +31,24 @@ void *sbrk(intptr_t increment);
 - malloc():
   - 它首先会扫描之前由 free()所释放的空闲内存块列表，以求找到尺寸大于或等于要求的一块空闲内存(`first-fit / best-fit`)
   - 如果在空闲内存列表中根本找不到足够大的空闲内存块，那么 malloc()会调用 sbrk()以分配更多的内存(为减少调用sbrk(), malloc()会以更大幅度提高program break)
+
+- free():
+  - malloc()分配内存块时,会额外分配几个字节来存放记录这块内存大小的整数值,存放于内存块的起始处,实际返回的内存地址则刚好位于这一长度之后
+![](https://raw.githubusercontent.com/Daz-3ux-Img/Img-hosting/master/202207161520279.png)
+  - 当将内存块置于空闲内存列表(双向链表)时,free()会使用内存块本身的空间来存放链表指针,将自身添加到列表中
+![](https://raw.githubusercontent.com/Daz-3ux-Img/Img-hosting/master/202207161525921.png)
+  - 随着不断分配和释放,空闲列表中的空闲内存和已分配会混杂在一起,很难理清
+
+# 7.1.4 在堆上分配内存的其他方法
+## base
+- calloc()
+- realloc()
+
+## 分配对齐的内存
+- `memalign()` 和 `posix_memalign()`
+
+# 7.2 在堆栈上分配内存:alloca()
+
+- alloca()也可以动态分配内存,不过不是从堆上分配内存,而是通过增加`栈帧`的大小从堆栈上分配
+- 根据定义,当前调用函数的栈帧位于堆栈的顶部,故而这种方法是可行的。(帧的上方存在扩展空间,只需修改堆栈指针值即可)
+- 分配的内存速度要快于malloc()
