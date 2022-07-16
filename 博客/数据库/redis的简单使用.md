@@ -24,7 +24,9 @@ public:
 
   bool connect(std::string host, int port) 
   {
+    // 获取连接状态
     this->_connect = redisConnect(host.c_str(), port);
+    // 判断连接是否正常
     if(this->_connect != NULL && this->_connect->err) {
       printf("connect error: %s\n", this->_connect->errstr);
       return false;
@@ -34,22 +36,25 @@ public:
 
   std::string get(std::string key)
   {
+    // 获取redis命令的回复
     this->_reply = (redisReply*)redisCommand(this->_connect, "GET %s", key.c_str());
     std::string str = this->_reply->str;
+    // 释放内存
     freeReplyObject(this->_reply);
     return str;
   }
 
   void set(std::string key, std::string value)
   {
+    // 设置键值对命令
     redisCommand(this->_connect, "SET %s %s", key.c_str(), value.c_str());
   }
 
 
 
 private:
-  redisContext *_connect;
-  redisReply *_reply;
+  redisContext *_connect; // 获取连接(连接句柄?)
+  redisReply *_reply;     // 获取redis命令的回复
 };
 ```
 
