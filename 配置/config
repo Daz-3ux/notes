@@ -1,0 +1,387 @@
+exec_always ~/realdaz/.config/sway/import-gsettings.sh
+exec fcitx5
+# exec qv2ray
+exec goldendict
+exec telegram-desktop
+exec google-chrome-stable
+exec wl-paste -t text --watch clipman store --no-persist
+# exec blueman-applet
+# Notification daemon (see ~/.config/systemd/user/mako.service)
+exec mako
+exec kdeconnect-indicator
+exec zsh -c Sway_WallPaper
+exec sworkstyle > /tmp/sworkstyle.log
+exec zsh ~/.config/sway/aw-tracker.zsh
+exec solaar -w hide -b symbolic
+exec_always --no-startup-id ~/realdaz/photo/wallpic.sh
+exec_always --no-startup-id  compton
+### Variables
+#
+# Logo key. Use Mod1 for Alt.
+set $mod Mod4
+# Home row direction keys, like vim
+set $left h
+set $down j
+set $up k
+set $right l
+# Your preferred terminal emulator
+
+set $term alacritty -e tmux
+
+# Your preferred application launcher
+# Note: pass the final command to swaymsg so that the resulting window can be opened
+# on the original workspace that the command was run on.
+#set $menu dmenu_path | dmenu | xargs swaymsg exec --
+
+set $menu wofi -I -m --show drun
+set $menu wofi --show=drun --lines=5 --prompt=""
+
+
+# Load environment variables
+# Be done in systemd unit file (see ~/.config/systemd/user/sway.service)
+
+### Output configuration
+#
+# Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
+output * bg /usr/share/backgrounds/sway/star.png fill
+#
+# Example configuration:
+#
+# output HDMI-A-1 resolution 3440x1440 position 0,0
+# output eDP-1 resolution 1920x1080 position 3440,0
+# workspace 1 output eDP-1
+#
+output eDP-1 resolution 1920x1080 position 1920,0
+workspace 1 output eDP-1
+workspace 3 output eDP-1
+workspace 5 output eDP-1
+workspace 7 output eDP-1
+
+output HDMI-A-1 resolution 3440x1440 position 0,0
+workspace 2 output HDMI-A-1
+workspace 4 output HDMI-A-1
+workspace 6 output HDMI-A-1
+workspace 8 output HDMI-A-1
+# You can get the names of your outputs by running: swaymsg -t get_outputs
+
+### Idle configuration
+#
+# Example configuration:
+#
+
+bar {
+    # 使用 Waybar (https://github.com/Alexays/Waybar)
+    swaybar_command waybar
+
+}
+
+exec swayidle -w \
+         timeout 300 'zsh -c swaylock_setup' \
+         timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
+         timeout 900 'systemctl suspend' \
+         before-sleep 'zsh -c swaylock_setup'
+#
+# This will lock your screen after 300 seconds of inactivity, then turn off
+# your displays after another 300 seconds, and turn your screens back on when
+# resumed. It will also lock your screen before your computer goes to sleep.
+#exec swayidle -w \
+#       timeout 300 'swaylock -f' \
+#       timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
+#       before-sleep 'swaylock -f'
+# Replaced by SystemD unit file (see ~/.config/systemd/user/swayidle.service)
+
+### Input configuration
+#
+# Example configuration:
+#
+input "type:touchpad" {
+      dwt enabled
+      tap enabled
+      natural_scroll disabled
+      middle_emulation enabled
+   }
+input "type:keyboard" {
+    repeat_delay 200
+    repeat_rate 20
+    xkb_options ctrl:nocaps
+}
+#
+# You can get the names of your inputs by running: swaymsg -t get_inputs
+# Read `man 5 sway-input` for more information about this section.
+
+### Font
+font monospace 10
+
+### Eye candies
+#
+# No border
+default_border pixel 1
+default_floating_border pixel 1
+# gaps
+gaps inner 0
+gaps outer 0
+
+### Colors
+#
+set $nord0   #2E3440
+set $nord1   #3B4252
+set $nord2   #434C5E
+set $nord3   #4C566A
+set $nord4   #D8DEE9
+set $nord5   #E5E9F0
+set $nord6   #ECEFF4
+set $nord7   #8FBCBB
+set $nord8   #88C0D0
+set $nord9   #81A1C1
+set $nord10  #5E81AC
+set $nord11  #BF616A
+set $nord12  #D08770
+set $nord13  #EBCB8B
+set $nord14  #A3BE8C
+set $nord15  #B48EAD
+
+# i3 Colors
+# <colorclass> <border> <background> <text> <indicator> <child_border>
+client.focused $nord7 $nord7 $nord0 $nord9 $nord7
+client.focused_inactive $nord3 $nord3 $nord7 $nord3 $nord3
+client.unfocused $nord1 $nord1 $nord9 $nord1 $nord1
+client.urgent $nord13 $nord13 $nord0 $nord13 $nord13
+client.placeholder $nord0 $nord0 $nord3 $nord0 $nord0
+
+### Application startup
+#
+# XDG Autostart
+#exec dex -a
+
+
+
+# 虚拟机
+bindsym $mod+g exec zsh ~/.config/sway/.config/sway/translate.zsh
+bindsym $mod+p exec 'zsh -c swaylock_setup'
+
+# foot terminal server (see ~/.config/systemd/user/footd.service)
+#exec foot --server
+# Udiskie
+#exec udiskie --tray
+
+
+#exec mconnect -d
+# IBus
+#exec ibus-daemon -drx --panel /usr/lib/ibus/ibus-ui-gtk3
+# Redshift
+#exec systemctl --user start redshift.service
+# wob
+#exec mkfifo $SWAYSOCK.wob && tail -f $SWAYSOCK.wob | wob
+# waybar (see ~/.config/systemd/user/waybar.service)
+#exec waybar
+# OfflineIMAP
+#exec systemctl --user start offlineimap@gmail.service
+#exec systemctl --user start offlineimap@sjtu.service
+# pavucontrol
+# for_window [app_id="pavucontrol"] floating enable
+# for_window [class="steam_app*"] inhibit_idle focus
+# for_window [app_id="foot"] opacity 0.9
+# for_window [app_id="zathura"] opacity 0.95
+
+### Key bindings
+#
+# Basics:
+#
+# Start a terminal
+#bindsym $mod+Return exec $term
+bindsym $mod+Return exec alacritty
+# Start a fully-functional terminal
+bindsym $mod+Shift+Return exec $term
+
+# Kill focused window
+bindsym $mod+Shift+q kill
+
+# Start your launcher
+bindsym $mod+d exec $menu
+#bindsym XF86Search exec wofi --show drun
+
+# Screenshot
+bindsym Print exec zsh shoot.zsh
+
+# Drag floating windows by holding down $mod and left mouse button.
+# Resize them with right mouse button + $mod.
+# Despite the name, also works for non-floating windows.
+# Change normal to inverse to use left mouse button for resizing and right
+# mouse button for dragging.
+floating_modifier $mod normal
+
+# Reload the configuration file
+bindsym $mod+Shift+c reload
+# Restart sway inplace (preserves your layout/session, can be used to upgrade i3)
+bindsym $mod+Shift+r restart
+
+# Exit sway (logs you out of your Wayland session)
+bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -b 'Yes, exit sway' 'swaymsg exit'
+#
+# Moving around:
+#
+# Move your focus around
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
+# Or use $mod+[up|down|left|right]
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Move the focused window with the same, but add Shift
+bindsym $mod+Shift+$left move left
+bindsym $mod+Shift+$down move down
+bindsym $mod+Shift+$up move up
+bindsym $mod+Shift+$right move right
+# Ditto, with arrow keys
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+#
+# Workspaces:
+#
+    # Switch to workspace
+    bindsym $mod+1 workspace number 1
+    bindsym $mod+2 workspace number 2
+    bindsym $mod+3 workspace number 3
+    bindsym $mod+4 workspace number 4
+    bindsym $mod+5 workspace number 5
+    bindsym $mod+6 workspace number 6
+    bindsym $mod+7 workspace number 7
+    bindsym $mod+8 workspace number 8
+    bindsym $mod+9 workspace number 9
+    bindsym $mod+0 workspace number 10
+    # Move focused container to workspace
+    bindsym $mod+Shift+1 move container to workspace number 1
+    bindsym $mod+Shift+2 move container to workspace number 2
+    bindsym $mod+Shift+3 move container to workspace number 3
+    bindsym $mod+Shift+4 move container to workspace number 4
+    bindsym $mod+Shift+5 move container to workspace number 5
+    bindsym $mod+Shift+6 move container to workspace number 6
+    bindsym $mod+Shift+7 move container to workspace number 7
+    bindsym $mod+Shift+8 move container to workspace number 8
+    bindsym $mod+Shift+9 move container to workspace number 9
+    bindsym $mod+Shift+0 move container to workspace number 10
+    # Note: workspaces can have any name you want, not just numbers.
+    # We just use 1-10 as the default.
+#
+# Layout stuff:
+#
+# You can "split" the current object of your focus with
+# $mod+b or $mod+v, for horizontal and vertical splits
+# respectively.
+bindsym $mod+b splitv
+bindsym $mod+v splith
+
+# Switch the current container between different layout styles
+#bindsym $mod+s layout stacking
+#bindsym $mod+t layout tabbed
+#bindsym $mod+e layout toggle split
+
+# Make the current focus fullscreen
+bindsym $mod+f fullscreen
+
+# Toggle the current focus between tiling and floating mode
+bindsym $mod+Shift+space floating toggle
+
+# Swap focus between the tiling area and the floating area
+bindsym $mod+space focus mode_toggle
+
+# Move focus to the parent container
+bindsym $mod+a focus parent
+
+# Focus the child container
+bindsym $mod+c focus child
+
+#
+# Scratchpad:
+#
+# Sway has a "scratchpad", which is a bag of holding for windows.
+# You can send windows there and get them back later.
+
+# Move the currently focused window to the scratchpad
+bindsym $mod+Shift+minus move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+# If there are multiple scratchpad windows, this command cycles through them.
+bindsym $mod+minus scratchpad show
+#
+# Resizing containers:
+#
+mode "resize" {
+  # These bindings trigger as soon as you enter the resize mode
+  # left will shrink the containers width
+  # right will grow the containers width
+  # up will shrink the containers height
+  # down will grow the containers height
+  bindsym $left resize shrink width 1 px or 1 ppt
+  bindsym $down resize grow height 1 px or 1 ppt
+  bindsym $up resize shrink height 1 px or 1 ppt
+  bindsym $right resize grow width 1 px or 1 ppt
+
+  bindsym Shift+h resize shrink width 10 px or 10 ppt
+  bindsym Shift+j resize grow height 10 px or 10 ppt
+  bindsym Shift+k resize shrink height 10 px or 10 ppt
+  bindsym Shift+l resize grow width 10 px or 10 ppt
+
+  # same bindings, but for the arrow keys
+  bindsym Left resize shrink width 10 px or 10 ppt
+  bindsym Down resize grow height 10 px or 10 ppt
+  bindsym Up resize shrink height 10 px or 10 ppt
+  bindsym Right resize grow width 10 px or 10 ppt
+
+  # back to normal: Enter or Escape
+  bindsym Return mode "default"
+  bindsym Escape mode "default"
+}
+bindsym $mod+r mode "resize"
+
+#
+# XF86 Keybindings
+#
+bindsym XF86AudioRaiseVolume        exec pactl set-sink-volume @DEFAULT_SINK@ +5% && pamixer --get-volume > $XDG_RUNTIME_DIR/wobpipe
+bindsym XF86AudioLowerVolume        exec pactl set-sink-volume @DEFAULT_SINK@ -5% && pamixer --get-volume > $XDG_RUNTIME_DIR/wobpipe
+bindsym Shift+XF86AudioRaiseVolume  exec pactl set-sink-volume @DEFAULT_SINK@ +1% && pamixer --get-volume > $XDG_RUNTIME_DIR/wobpipe
+bindsym Shift+XF86AudioLowerVolume  exec pactl set-sink-volume @DEFAULT_SINK@ -1% && pamixer --get-volume > $XDG_RUNTIME_DIR/wobpipe
+bindsym XF86AudioMute               exec pactl set-sink-mute @DEFAULT_SINK@ toggle && ( pamixer --get-mute && echo 0 > $XDG_RUNTIME_DIR/wobpipe ) || pamixer --get-volume > $XDG_RUNTIME_DIR/wobpipe
+bindsym XF86AudioMicMute            exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindsym XF86MonBrightnessUp         exec light -A 10 && light -G | cut -d'.' -f1 > $XDG_RUNTIME_DIR/wobpipe
+bindsym XF86MonBrightnessDown       exec light -U 10 && light -G | cut -d'.' -f1 > $XDG_RUNTIME_DIR/wobpipe
+bindsym Shift+XF86MonBrightnessUp   exec light -A  1 && light -G | cut -d'.' -f1 > $XDG_RUNTIME_DIR/wobpipe
+bindsym Shift+XF86MonBrightnessDown exec light -U  1 && light -G | cut -d'.' -f1 > $XDG_RUNTIME_DIR/wobpipe
+bindsym XF86AudioPlay               exec playerctl play-pause
+bindsym XF86AudioNext               exec playerctl next
+bindsym XF86AudioPrev               exec playerctl previous
+
+# bindsym $mod+Delete exec wlogout
+
+
+
+set $opacity 0.90
+set $opacity2 0.90
+set $no_opacity 1
+for_window [class=".*"] opacity $opacity
+for_window [app_id=".*"] opacity $opacity
+for_window [class="Code"] opacity $no_opacity
+#for_window [app_id="firefox"] opacity $opacity2
+#for_window [class="Chromium"] opacity $opacity2
+for_window [app_id="mpv"] opacity $no_opacity
+
+for_window [class="GoldenDict"] floating enable
+for_window [instance="goldendict"] floating enable
+for_window [class="GoldenDict"] resize set 650 500
+include /etc/sway/config.d/*
+
+# 锁屏
+bindsym $mod+F4 exec `sl`
+exec --no-startup-id xautolock -time 10 -locker swaylock
+bindsym button8 exec 'zhs shot.zsh'
+
+# 快捷F
+bindsym $mod+F3 exec --no-startup-id thunar
+bindsym $mod+F2 exec --no-startup-id google-chrome-stable
+# exec --no-startup-id volumeicon bindsym $mod+Crtl+m exec terminal -e "alsamixer" 
