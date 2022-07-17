@@ -243,7 +243,7 @@ void PrintfArray(const T &data) {
 - 函数是CPU指令
 - 使用auto赋值就很方便
 - `void(*cherno)() = this_is_a_functionName`
-```cc
+```cpp
 #include <iostream>
 #include <vector>
 
@@ -271,7 +271,7 @@ int main(int argc, char **argv)
 ```
 
 # C++的lambda
-```cc
+```cpp
 #include <iostream>
 #include <vector>
 
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 - 不需要通过函数定义就可以定义一个函数的方法
 - `非捕获`lambda可以`隐式`转换为函数指针, 而有捕获lambda不可以
 
-```cc
+```cpp
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -373,3 +373,36 @@ int main(int argc, char **argv)
 -  lambda是一个控制排序规则的好选择
 
 # C++的类型双关
+- 提高性能
+- 就是说取地址然后转换成其他类型的指针
+- 把自己有的一段内存当作不同类型的内存来对待
+```cpp
+#include <iostream>
+
+class Entity
+{
+public:
+  int x,y;
+};
+
+int main() {
+  Entity e = {5, 8};
+  int *position = (int*)&e;
+  std::cout << position[0] << " " << position[1] << " " << std::endl;
+
+  int x = ((char*)&e)[0];
+  int y = ((char*)&e)[1];
+  int z = ((char*)&e)[2];
+  int i = ((char*)&e)[3];
+  int crazy = ((char*)&e)[4];
+
+  std::cout << x << " " << y << " " << z << " " << i << std::endl;
+  std::cout << crazy << std::endl;
+
+  return 0;
+
+}
+```
+
+# C++的联合体
+- union

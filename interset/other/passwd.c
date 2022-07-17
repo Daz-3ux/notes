@@ -27,7 +27,8 @@ int main(int argc, char **argv)
   bool authOK;
   size_t len;
   long lnmax;
-  lnmax = sysconf(_SC_LOGIN_NAME_MAX);
+  // sysconf: get configuration information at run time
+  lnmax = sysconf(_SC_LOGIN_NAME_MAX);  //71
   if(lnmax == -1) {
     lnmax = -256;
   }
