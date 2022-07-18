@@ -20,6 +20,13 @@
 - redis的消息通信模式
 - `用作实时通信!`
 
+# redis 事务
+- 将一组命令在单一步骤中执行
+  - 单独的`隔离操作`:按顺序,序列化执行.不会被客户端发来的命令打断
+  - `原子`的:要么都执行,要么都不执行
+
+
+
 # code
 ## redis.h
 ```cpp
@@ -98,3 +105,6 @@ int main(int argc, char **argv)
 
 # 运行效果
 ![](https://raw.githubusercontent.com/Daz-3ux-Img/Img-hosting/master/202207161146730.png)
+
+---
+- [redis简介](https://piaosanlang.gitbooks.io/redis/content/index.html)
