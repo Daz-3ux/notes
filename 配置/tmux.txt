@@ -1,4 +1,4 @@
-et -g prefix `
+set -g prefix `
 unbind C-b
 bind ` send-prefix
 
