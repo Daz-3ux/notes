@@ -28,7 +28,7 @@ int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
 ```
 - fd:要操作的文件描述符
 - op:option
-  - `EPOLL_CTL_ADD`: 往时间表中注册fd上的事件
+  - `EPOLL_CTL_ADD`: 向事件表中注册fd上的事件
   - `EPOLL_CTL_MOD`: 修改fd上的注册事件
   - `EPOLL_CTL_DEL`: 删除fd上的注册事件
 - event:
@@ -102,3 +102,4 @@ for(int i = 0; i < ret; i++) {
 # refer
 - 《TLPI》
 - 《高性能服务器编程》--游双
+- 爱编程的大丙
