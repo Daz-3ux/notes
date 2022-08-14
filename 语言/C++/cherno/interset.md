@@ -373,6 +373,8 @@ int main(int argc, char **argv)
 -  lambda是一个控制排序规则的好选择
 
 # C++的类型双关
+- 用来绕过类型检查
+- 类型是由编译器强制执行的,但我们可以直接访问内存
 - 提高性能
 - 就是说取地址然后转换成其他类型的指针
 - 把自己有的一段内存当作不同类型的内存来对待
@@ -406,3 +408,27 @@ int main() {
 
 # C++的联合体
 - union
+- union通常是匿名使用的,但是匿名的union**不能含有成员函数**
+- union通常被用来做类型双关
+```c++
+struct vector2
+{
+  float x,y;
+};
+
+struct vector4
+{
+  union
+  {
+    struct{
+      float x,y,z,w;
+    };
+    struct{
+      vector2 a,b;
+      // a和x,y的内存是一样的
+      // b和z,w的内存是一样的
+    };
+  };
+};
+```
+
