@@ -38,7 +38,35 @@ void *accept_request(void *);
 */
 int startup(u_short *port)
 {
+  int httpd = 0;
+  httpd = socket(PF_INET, SOCK_STREAM, 0);
+  if(httpd == -1) {
+    error_die("socket");
+  }
 
+  struct sockaddr_in name;
+  bzero(&name, sizeof(name));
+  name.sin_family = AF_INET;
+  name.sin_port = htons(*port);
+  name.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  if(bind(httpd, (struct sockaddr*)&name, sizeof(name)) < 0) {
+    error_die("bind");
+  }
+
+  if(*port == 0) {
+    socklen_t namelen = sizeof(name);
+    if(getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1) {
+      error_die("getsockname");
+    }
+    *port = ntohs(name.sin_port);
+  }
+
+  if(listen(httpd, 5) < 0) {
+    error_die("listen");
+  }
+
+  return httpd;
 }
 
 /*
@@ -57,7 +85,8 @@ void *accept_request(void *client1)
 */
 void error_die(const char *sc)
 {
-
+  perror(sc);
+  exit(1);
 }
 
 
