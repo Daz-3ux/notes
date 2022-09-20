@@ -30,6 +30,51 @@ void error_die(const char *);
 void *accept_request(void *);
 int get_line(int, char*, int);
 int unimplemented(int);
+void not_found(int);
+void server_file(int, const char *);
+void execute_cgi(int, const char *, const char *, const char *);
+
+/*
+
+*/
+int get_line(int sock, char *buf, int size)
+{
+
+}
+
+/*
+
+*/
+void unimplemented(int client)
+{
+
+}
+
+/*
+
+*/
+void not_found(int client)
+{
+
+}
+
+/*
+
+*/
+void server_file(int client, const char *filename)
+{
+
+}
+
+/*
+
+*/
+void execute_cgi(int client, const char *path, const char *method,
+                const char *query_string)
+{
+  
+}
+
 
 /*
 此函数在一个特定端口启动监听网页连接的进程
@@ -108,8 +153,80 @@ void *accept_request(void *client1)
     return NULL;
   }
 
-  
+  // POST方法
+  if(strcasecmp(method, "POST") == 0) {
+    cgi = 1;
+  }
+  i = 0;
+  // 跳过所有空白字符
+  while(ISspace(buf[j]) && (j < sizeof(buf))) {
+    j++;
+  }
+  // 读取URL放入url数组
+  while(!ISspace(buf[j]) && (i < sizeof(url)-1) && (j < sizeof(buf))) {
+    url[i] = buf[j];
+    i++;
+    j++;
+  }
+  url[i] = '\0';
 
+  // GET方法
+  if(strcasecmp(method, "GET") == 0) {
+    query_string = url;
+    while((*query_string != '?') && (*query_string != '\0')) {
+      query_string++;
+    }
+    // 如果是?就说明此请求需要调用cgi
+    if(*query_string == '?') {
+      cgi = 1;
+      *query_string = '\0'; // 将url分成两段
+      query_string++;
+    }
+  }
+  
+  // 处理第一段
+  spraintf(path, "htdocs%s", url);
+
+  // 如果path字符串最后一个字符为 /
+  // 就拼接上"index.html"的字符串:首页
+  if (path[strlen(path)-1] == '/') {
+    strcat(path, "index.html");
+  }
+
+  // 查询文件是否存在
+  // struct stat st;
+  if(stat(path, &st) == -1) {
+    // 不存在: read & discard head
+    while((numchars > 0) && strcmp('\n', buf)) {
+      numchars = get_line(client, buf, sizeof(buf));
+    }
+    // 给客户端返回一个 找不到文件 的response
+    not_found(client);
+  }else {
+    // 文件存在,判断文件类型
+    // S_IFMT:可以用来过滤出前四位表示的文件类型
+    if((st.st_mode & S_IFMT) == S_IFDIR) {
+      // S_IFDIR : 是否为目录, 如果是目录,就需要在path后拼接一个字符串
+      // 用S_ISDIR(st.st_mode)更好
+      strcat(path, "/index.html");
+    }
+
+    if((st.st_mode & S_IXUSR) || (st.st_mode & S_IXGRP) ||
+        (st.st_mode & S_IXOTH)) {
+          // 只要是可执行文件,就将cgi置为1
+          cgi = 1;
+    }
+
+    if(!cgi){
+      // 如果不需要cgi机制
+      server_file(client, path);
+    }else {
+      execute_cgi(client, path, method, query_string);
+    }
+  }
+
+  close(client);
+  return NULL;
 }
 
 /*
