@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#define Isspace(x) isspace((int)(x))
+#define ISspace(x) isspace((int)(x))
 #define SERVER_STRING "Server: dazhttpd/0.1.0\r\n"
 
 void *accept_request(void *);
@@ -28,7 +28,8 @@ void *accept_request(void *);
 int startup(u_short *);
 void error_die(const char *);
 void *accept_request(void *);
-
+int get_line(int, char*, int);
+int unimplemented(int);
 
 /*
 此函数在一个特定端口启动监听网页连接的进程
@@ -70,12 +71,44 @@ int startup(u_short *port)
 }
 
 /*
-一个请求导致服务器端口上的accept()调用返回
+一个请求导致服务器端口上的accept()调用返回:处理套接字上的http请求
 在正确的时机处理请求
 变量:连接到客户端的socket
 */
 void *accept_request(void *client1)
 {
+  int client = *(int*)client1;
+  char buf[1024];
+  int numchars;
+  char method[255];
+  char url[255];
+  char path[512];
+
+  size_t i,j;
+  struct stat st;
+  int cgi = 0;// 标识位:当服务器确定这是一个CGI程序时转为真
+
+  char *query_string = NULL;
+
+  // 读取http请求的request line(第一行), 把请求方法存入method
+  numchars = get_line(client, buf, sizeof(buf));
+  i = 0;
+  j = 0;
+  // 去掉换行符
+  while(!ISspace(buf[j]) && (i < sizeof(method) - 1)) {
+    method[i] = buf[j];
+    i++;
+    j++;
+  }
+  method[i] = '\0';
+
+  // 如果请求不是GET 或 POST 就发送response告知客户端没实现该方法
+  if(strcasecmp(method, "GET") && strcasecmp(method, "POST")) {
+    unimplemented(client);
+    return NULL;
+  }
+
+  
 
 }
 
