@@ -35,7 +35,7 @@ void server_file(int, const char *);
 void execute_cgi(int, const char *, const char *, const char *);
 
 /*
-从套接字获取一行:行以换行符,回车符,CRLF组合结尾均可
+从套接字获取一行:行以换行符,回车符,CRLF组合结尾均可(Carriage-Return Line-Feed)
 空字符用来终止读取到的字符串
 如果缓冲区满还没读到换行符,字符串就以空值结束
 参数:  套接字描述符
@@ -45,7 +45,31 @@ void execute_cgi(int, const char *, const char *, const char *);
 */
 int get_line(int sock, char *buf, int size)
 {
+  // 读取套接字的一行，把回车换行等情况都统一为换行符结束
+  int i = 0;
+  char c = '\0';
+  int n;
 
+  while((i < size-1) && (c != '\n')) {
+    n = recv(sock, &c, 1, 0);
+    if(n > 0) { // 将'\r'当作换行符处理
+      if(c == '\r') {
+        // MSG_PEEK: 仅把tcp buffer中的数据读取到buf中
+        // 并不把已读取的数据从tcp buffer中移除
+        n = recv(sock, &c, 1, MSG_PEEK);
+        if((n > 0) && (c == '\n')) {
+          recv(sock, &c, 1, 0);
+        }else {
+          c = '\n';
+        }
+      }
+      buf[i] = c;
+      i++;
+    }
+  }
+  buf[i] = '\0';
+
+  return i;
 }
 
 /*
