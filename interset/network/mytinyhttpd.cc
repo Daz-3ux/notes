@@ -35,7 +35,13 @@ void server_file(int, const char *);
 void execute_cgi(int, const char *, const char *, const char *);
 
 /*
-
+从套接字获取一行:行以换行符,回车符,CRLF组合结尾均可
+空字符用来终止读取到的字符串
+如果缓冲区满还没读到换行符,字符串就以空值结束
+参数:  套接字描述符
+      保存数据的缓冲区
+      缓冲区的大小
+返回: 存储的字节数(不包括NULL)
 */
 int get_line(int sock, char *buf, int size)
 {
@@ -43,7 +49,8 @@ int get_line(int sock, char *buf, int size)
 }
 
 /*
-
+告知客户端其请求的web方法并没有被实现
+参数: 客户端socket号
 */
 void unimplemented(int client)
 {
@@ -51,7 +58,7 @@ void unimplemented(int client)
 }
 
 /*
-
+给客户端发送错误信息: 404 not found
 */
 void not_found(int client)
 {
@@ -59,7 +66,10 @@ void not_found(int client)
 }
 
 /*
-
+发送一个常规文件给客户端
+使用headers,以及报告如果发生的错误
+参数: 指向从套接字文件描述符生成的文件结构的指针
+      要服务的文件的名称
 */
 void server_file(int client, const char *filename)
 {
@@ -67,12 +77,15 @@ void server_file(int client, const char *filename)
 }
 
 /*
-
+执行一个CGI脚本
+需要设置适当的环境变量
+参数: socket
+      CGI脚本部分
 */
 void execute_cgi(int client, const char *path, const char *method,
                 const char *query_string)
 {
-  
+
 }
 
 
