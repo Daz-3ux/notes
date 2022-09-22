@@ -29,7 +29,7 @@ int startup(u_short *);
 void error_die(const char *);
 void *accept_request(void *);
 int get_line(int, char*, int);
-int unimplemented(int);
+void unimplemented(int);
 void not_found(int);
 void server_file(int, const char *);
 void execute_cgi(int, const char *, const char *, const char *);
@@ -256,7 +256,7 @@ void execute_cgi(int client, const char *path, const char *method,
   // 子进程执行cgi脚本
   if(pid == 0) { // child
     char meth_env[255];
-    char query_string[255];
+    char query_env[255];
     char length_env[255];
 
     // 将子进程的输出重定向为标准输出
@@ -418,7 +418,7 @@ void *accept_request(void *client1)
   }
   
   // 处理第一段
-  spraintf(path, "htdocs%s", url);
+  sprintf(path, "htdocs%s", url);
 
   // 如果path字符串最后一个字符为 /
   // 就拼接上"index.html"的字符串:首页
@@ -430,7 +430,7 @@ void *accept_request(void *client1)
   // struct stat st;
   if(stat(path, &st) == -1) {
     // 不存在: read & discard head
-    while((numchars > 0) && strcmp('\n', buf)) {
+    while((numchars > 0) && strcmp("\n", buf)) {
       numchars = get_line(client, buf, sizeof(buf));
     }
     // 给客户端返回一个 找不到文件 的response
