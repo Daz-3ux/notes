@@ -33,6 +33,35 @@ int unimplemented(int);
 void not_found(int);
 void server_file(int, const char *);
 void execute_cgi(int, const char *, const char *, const char *);
+void headers(int, const char *);
+void cat(int, FILE *);
+void cannot_execute(int);
+
+void bad_request(int);
+
+/*
+
+*/
+void headers(int client, const char *filename)
+{
+
+}
+
+/*
+
+*/
+void cat(int client, FILE *resource)
+{
+
+}
+
+/*
+
+*/
+void cannot_execute(int client)
+{
+
+}
 
 /*
 从套接字获取一行:行以换行符,回车符,CRLF组合结尾均可(Carriage-Return Line-Feed)
@@ -78,6 +107,24 @@ int get_line(int sock, char *buf, int size)
 */
 void unimplemented(int client)
 {
+  char buf[1024];
+
+  sprintf(buf, "HTTP/1.0 501 Method Not Implemented\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, SERVER_STRING); // Server: dazhttpd/0.1.0\r\n
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "Content-Type: text/html\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "<HTML><HEAD><TITLE>Method Not Implemented\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "</TITLE></HEAD>\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "<BODY><P>HTTP request method not supported.\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "</BODY></HTML>\r\n");
+  send(client, buf, strlen(buf), 0);
 
 }
 
@@ -86,7 +133,26 @@ void unimplemented(int client)
 */
 void not_found(int client)
 {
+  char buf[1024];
 
+  sprintf(buf, "HTTP/1.0 404 NOT FOUND\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, SERVER_STRING); // Server: dazhttpd/0.1.0\r\n
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "Content-Type: text/html\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "your request because the resource specified\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "is unavailable or nonexistent.\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "</BODY></HTML>\r\n");
+  send(client, buf, strlen(buf), 0);
 }
 
 /*
@@ -97,7 +163,31 @@ void not_found(int client)
 */
 void server_file(int client, const char *filename)
 {
+  // 如果不需要cgi机制就调用此函数
+  FILE *resource = NULL;
+  int numchars = 1;
+  char buf[1024];
 
+  // 确保buf不为空,可以进入下方while循环
+  buf[0] = 'A';
+  buf[1] = '\0';
+  // read and discard headers
+  while((numchars > 0) && strcmp("\n", buf)) {
+    numchars = get_line(client, buf, sizeof(buf));
+  }
+
+  // 打开文件
+  resource = fopen(filename, "r");
+  if(resource == NULL) {
+    not_found(client);
+  }else {
+    // 成功打开后,将文件的基本信息封装成response的头部并返回
+    headers(client, filename);
+    // 将文件的内容作为response的body并返回
+    cat(client, resource);
+  }
+
+  fclose(resource);
 }
 
 /*
@@ -109,7 +199,113 @@ void server_file(int client, const char *filename)
 void execute_cgi(int client, const char *path, const char *method,
                 const char *query_string)
 {
+  char buf[1024];
+  int cgi_output[2];
+  int cgi_input[2];
+  pid_t pid;
+  int status;
+  int i;
+  char c;
+  int numchars = 1;
+  int content_length = -1;
 
+  // 确保buf非空
+  buf[0] = 'A';
+  buf[1] = '\0';
+  // GET
+  if(strcasecmp(method, "GET") == 0) {
+    while((numchars > 0) && strcmp("\n", buf)) {
+      numchars = get_line(client, buf, sizeof(buf));
+    }
+  // POST
+  }else {
+    numchars = get_line(client, buf, sizeof(buf));
+
+    while((numchars > 0) && strcmp("\n", buf)) {
+      buf[15] = '\0';
+      if(strcasecmp(buf, "Content-Length:") == 0) {
+        content_length = atoi(&(buf[16]));  //记录 body 的长度大小
+      }
+      numchars = get_line(client, buf, sizeof(buf));
+    }
+
+    if(content_length == -1) {
+      bad_request(client);
+      return;
+    }
+  }
+
+  sprintf(buf, "HTTP/1.0 200 OK\r\n");
+  send(client, buf, strlen(buf), 0);
+
+  //下面这里创建两个管道，用于两个进程间通信
+  if (pipe(cgi_output) < 0) {
+    cannot_execute(client);
+    return;
+  }
+  if (pipe(cgi_input) < 0) {
+    cannot_execute(client);
+    return;
+  }
+
+  if((pid = fork()) < 0) {
+    cannot_execute(client);
+    return;
+  }
+
+  // 子进程执行cgi脚本
+  if(pid == 0) { // child
+    char meth_env[255];
+    char query_string[255];
+    char length_env[255];
+
+    // 将子进程的输出重定向为标准输出
+    dup2(cgi_output[1], 1);
+    // 将标准输入重定向为子进程的写端
+    dup2(cgi_input[0], 0);
+    
+    close(cgi_output[0]);
+    close(cgi_input[1]);
+
+    // 构造一个环境变量 并添加到子进程运行环境之中
+    sprintf(meth_env, "REQUEST_METHOD=%s", method);
+    putenv(meth_env);
+
+    // 根据请求 构造并存储不同的环境变量
+    if(strcasecmp(method, "GET") == 0) {
+      sprintf(query_env, "QUERY_STRING=%s", query_string);
+      putenv(query_env);
+    }else {// POST
+      sprintf(length_env, "CONTENT_LENGTH=%d", content_length);
+      putenv(length_env);
+    }
+
+    execl(path, path, NULL);
+    exit(0);
+  }else { // parent
+    //父进程则关闭了 cgi_output管道的写端和 cgi_input 管道的读端
+    close(cgi_output[1]);
+    close(cgi_input[0]);
+
+    //如果是 POST 方法的话就继续读 body 的内容，并写到 cgi_input
+    //管道里让子进程去读
+    if (strcasecmp(method, "POST") == 0)
+      for (i = 0; i < content_length; i++) {
+        recv(client, &c, 1, 0);
+        write(cgi_input[1], &c, 1);
+      }
+
+    //然后从 cgi_output 管道中读子进程的输出，并发送到客户端去
+    while (read(cgi_output[0], &c, 1) > 0) {
+      send(client, &c, 1, 0);
+    }
+
+    //关闭管道
+    close(cgi_output[0]);
+    close(cgi_input[1]);
+    //等待子进程的退出
+    waitpid(pid, &status, 0);
+  }
 }
 
 
