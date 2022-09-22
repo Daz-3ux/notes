@@ -36,23 +36,59 @@ void execute_cgi(int, const char *, const char *, const char *);
 void headers(int, const char *);
 void cat(int, FILE *);
 void cannot_execute(int);
-
 void bad_request(int);
 
 /*
-
+告知客户端他发送的请求有问题
 */
-void headers(int client, const char *filename)
+void bad_request(int client)
 {
+  char buf[1024];
 
+  sprintf(buf, "HTTP/1.0 400 BAD REQUEST\r\n");
+  send(client, buf, sizeof(buf), 0);
+  sprintf(buf, "Content-type: text/html\r\n");
+  send(client, buf, sizeof(buf), 0);
+  sprintf(buf, "\r\n");
+  send(client, buf, sizeof(buf), 0);
+  sprintf(buf, "<P>Your browser sent a bad request, ");
+  send(client, buf, sizeof(buf), 0);
+  sprintf(buf, "such as a POST without a Content-Length.\r\n");
+  send(client, buf, sizeof(buf), 0);
 }
 
 /*
+返回有关文件的信息 HTTP 标头
+*/
+void headers(int client, const char *filename)
+{
+  char buf[1024];
+  (void)filename; /* could use filename to determine file type */
 
+  strcpy(buf, "HTTP/1.0 200 OK\r\n");
+  send(client, buf, strlen(buf), 0);
+  strcpy(buf, SERVER_STRING);
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "Content-Type: text/html\r\n");
+  send(client, buf, strlen(buf), 0);
+  strcpy(buf, "\r\n");
+  send(client, buf, strlen(buf), 0);
+}
+
+/*
+将文件的全部内容放在套接字上
+这个函数以 UNIX 的“cat”命令命名，因为它可能更容易做一些像 pipe、fork 和 exe 这样的事情
 */
 void cat(int client, FILE *resource)
 {
+  char buf[1024];
 
+  // 从文件描述符中读取内容
+  fgets(buf, sizeof(buf), resource);
+  while(!feof(resource)) {
+    send(client, buf, strlen(buf), 0);
+    fgets(buf, sizeof(buf), resource);
+  }
 }
 
 /*
@@ -60,7 +96,16 @@ void cat(int client, FILE *resource)
 */
 void cannot_execute(int client)
 {
+  char buf[1024];
 
+  sprintf(buf, "HTTP/1.0 500 Internal Server Error\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "Content-type: text/html\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "\r\n");
+  send(client, buf, strlen(buf), 0);
+  sprintf(buf, "<P>Error prohibited CGI execution.\r\n");
+  send(client, buf, strlen(buf), 0);
 }
 
 /*
