@@ -225,6 +225,7 @@ void server_file(int client, const char *filename)
   resource = fopen(filename, "r");
   if(resource == NULL) {
     not_found(client);
+    printf("2");
   }else {
     // 成功打开后,将文件的基本信息封装成response的头部并返回
     headers(client, filename);
