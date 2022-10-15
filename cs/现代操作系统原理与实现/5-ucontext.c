@@ -19,8 +19,8 @@ void consume() {
 }
 
 int main(int argc, char **argv) {
-  char iterator_stack1[SIGSTKSZ];
-  char iterator_stack2[SIGSTKSZ];
+  char iterator_stack1[64];
+  char iterator_stack2[64];
 
   getcontext(&ucontext1);
   ucontext1.uc_link = NULL;
