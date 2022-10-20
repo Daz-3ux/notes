@@ -110,14 +110,22 @@ alias peda='echo "source ~/GdbPlugins/peda/peda.py" > ~/.gdbinit '
 alias gef='echo "source ~/GdbPlugins/gef/gef.py" > ~/.gdbinit '
 alias gdbinit='echo "source ~/GdbPlugins/gdbinit/gdbinit" > ~/.gdbinit  '
 
-# 下载
+# 懒
 alias sp='sudo pacman'
-alias sps='sudo pacman -S'
+alias spS='sudo pacman -S'
+alias syu='yay'
 
-alias sn='shutdown now'
+alias SN='shutdown now'
 alias sn='sudo nvim'
 alias c='clear'
+alias e='exit'
+alias t='trans :zh-CN'
+alias cdtmp='cd ~/tmp'
 
+# curl cheat.sh/ls
+wtf() {
+  curl cheat.sh/$1
+}
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -128,3 +136,5 @@ source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+
+eval $(thefuck --alias)
