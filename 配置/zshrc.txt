@@ -120,7 +120,9 @@ alias sn='sudo nvim'
 alias c='clear'
 alias e='exit'
 alias t='trans :zh-CN'
-alias cdtmp='cd ~/tmp'
+alias cdtmp='cd  $(mktemp -d)'
+alias cdatmp='cd && cd .. && cd .. && cd tmp'
+
 
 # curl cheat.sh/ls
 wtf() {
