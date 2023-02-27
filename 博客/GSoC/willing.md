@@ -10,9 +10,9 @@
 - [Core Library Tests 核心库测试](https://wiki.blender.org/wiki/GSoC/Ideas_Suggestions#:~:text=Automated%20Testing-,Core%20Library%20Tests,-Description%3A%20There)
 - ![](https://i.imgur.com/Ov5YJTH.png) -->
 
-# Apache Dubbo
+<!-- # Apache Dubbo
 - [Dubbo GSoC 2023 - Integration suite on Kubernetes](https://cwiki.apache.org/confluence/display/COMDEV/GSoC+2023+Ideas+list#GSoC2023Ideaslist-DubboGSoC2023-IntegrationsuiteonKubernetes:~:text=%E5%BC%80%E5%8F%91%E4%BA%BA%E5%91%98%EF%BC%8C%E9%82%AE%E4%BB%B6%EF%BC%9A-,Apache%20Dubbo,-Dubbo%20GSoC%202023)
-- ![](https://i.imgur.com/NmzEaQN.png)
+- ![](https://i.imgur.com/NmzEaQN.png) -->
 
 # CRIU
 - [Forensic analysis of container checkpoints](https://criu.org/Google_Summer_of_Code_Ideas#:~:text=alexander%40mihalicyn.com%3E-,Forensic%20analysis%20of%20container%20checkpoints,-%5Bedit%5D)
