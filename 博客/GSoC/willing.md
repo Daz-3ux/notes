@@ -22,3 +22,12 @@
 - [More flexible output to file](https://strace.io/wiki/GoogleSummerOfCode2023#:~:text=More%20flexible%20output%20to%20file)
 - ![](https://i.imgur.com/PhwLich.png)
 
+- [https://github.com/unikraft/gsoc/blob/staging/gsoc-2023/ideas.md#:~:text=features/posix%2Dcompatibility/-,Unikraft%20%26%20DevOps,-Unikraft%20%E5%92%8C%20DevOps]
+
+- [https://wiki.netbsd.org/projects/gsoc/#:~:text=Easy-,Emulating%20missing%20linux%20syscalls%20(350h),-%E6%A8%A1%E6%8B%9F%E7%BC%BA%E5%A4%B1%E7%9A%84]
+
+- [https://rizin.re/gsoc/2023/#project-ideas:~:text=%E6%96%B0%E6%9E%B6%E6%9E%84%E6%94%AF%E6%8C%81-,Thread%2Dsafety%20and%20multithreading%20(175%20hour%20project),-%23]
+
+- [https://www.libssh.org/development/google-summer-of-code/#:~:text=Support%20for%20OpenSSH%20connection%20multiplexing]
+
+- [https://trac.ffmpeg.org/wiki/SponsoringPrograms/GSoC/2023#:~:text=Duration%3A%20175%20hours-,Audio%20CLAP%20Host%20Filter,-%C2%B6]
