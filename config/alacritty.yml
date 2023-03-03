@@ -1,0 +1,54 @@
+live_config_reload: true
+
+env:
+  TERM: xterm-256color
+
+selection:
+  semantic_escape_chars: ",│`|:\"' ()[]{}<>\t"
+  save_to_clipboard: true
+
+font:
+  normal:
+    family: "MesloLGSDZ Nerd Font Mono"
+    style: Regular
+  size: 13.0
+  
+mouse:
+  hide_when_typing: true
+
+shell:
+  program: /bin/zsh
+  args:
+      - -i
+      #    - 'tmux'
+
+window:
+  opacity: 0.9
+  # 窗口大小
+  dimensions:
+    columns: 120
+    lines: 30
+
+  # 边缘空白
+  padding:
+    x: 0
+    y: 15
+  dynamic_padding: false
+  startup_mode: Windowed
+  # 窗口修饰
+  # - full: 有边界 + 标题栏
+  # - none: 无边界 + 标题栏
+  decorations: full
+
+scrolling:
+  # 历史保留行数
+  history: 2000
+
+  # 每次滚动行数
+  multiplier: 10
+
+  # 每次滚动行数（分屏时）
+  faux_multiplier: 30
+
+  # 自动滚动至最新行
+  auto_scroll: true

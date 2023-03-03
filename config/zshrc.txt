@@ -5,6 +5,8 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
+#if [ -z "$TMUX"]; then tmux; fi
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -114,20 +116,32 @@ alias gdbinit='echo "source ~/GdbPlugins/gdbinit/gdbinit" > ~/.gdbinit  '
 alias sp='sudo pacman'
 alias spS='sudo pacman -S'
 alias syu='yay'
+alias syut='yay && sudo timeshift --create --comments "after syu" --tags D'
 
 alias SN='shutdown now'
-alias sn='sudo nvim'
+alias vi='nvim'
 alias c='clear'
 alias e='exit'
 alias t='trans :zh-CN'
 alias cdtmp='cd  $(mktemp -d)'
 alias cdatmp='cd && cd .. && cd .. && cd tmp'
 
+alias xv='cd && cd cc/xv6-labs-2021 && make qemu'
+alias fan='for i in {1..20}; do sensors | grep fan; echo " "; sleep 1; done'
+
+#nice tool
+alias ls='exa --git --icons --color=always --group-directories-first'
+alias cat='bat'
+alias ocr='TMP_DIR=$(mktemp -d) && flameshot gui -p "$TMP_DIR/screenshot.png" 2>/dev/null && tesseract "$TMP_DIR/screenshot.png" stdout | sed "/^\s*$/d" | tee /dev/tty | sed "/^\s*$/d" | xargs -I{} trans -b :zh "{}"'
+#alias find='fd'
+alias du='dust'
 
 # curl cheat.sh/ls
 wtf() {
   curl cheat.sh/$1
 }
+
+eval "$(starship init zsh)"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -140,3 +154,25 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 eval $(thefuck --alias)
+cctl(){
+  token="9416bebc-70a7-4474-9cc0-32982fedbc18"
+  Auth="Authorization: Bearer ${token}"
+  api="http://127.0.0.1:9005"
+  proxy=$(curl -s -H $Auth $api/proxies |jq '.proxies|[map(.)[]|select(has("type") and (.type=="URLTest" or .type=="Selector") and .name!="GLOBAL" )]')
+  if [[ "$1" == "ls" || "$1" == "" ]] {
+    echo $proxy | jq -r ".[]|{name,type,now}"
+    return
+  }
+  
+  if [[ $1 == "set" ]] {
+    target=$(echo $proxy | jq -r '.[]|select(.type=="Selector").name'|fzf --prompt "Select Target Group >")
+    if [[ "$target" == "" ]] {
+      return 1
+    }
+    target_proxy=$(echo $proxy |jq -r ".[]|select(.name==\"$target\").all[]"|fzf)
+    if [[ "$target_proxy" == "" ]] {
+      return 1
+    }
+    curl -s -X PUT -H $Auth $api/proxies/$target -d "{\"name\":\"${target_proxy}\"}"
+  }
+}
