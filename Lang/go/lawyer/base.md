@@ -1,3 +1,5 @@
+**https://gopl-zh.github.io/index.html**
+
 # 入门
 
 ### 变量声明
@@ -84,3 +86,98 @@ r := [...]int{99: -1}
   - 数组的顺序有意义
   - 如果要在函数内部修改结构体成员的话:必须用指针传入
     - 在 Go 中,所有的函数参值都是值拷贝传入的
+
+# 函数
+- 函数声明
+  - 没有函数体的函数声明:该函数不是 Go 实现的
+```go
+// example
+package math
+
+func Sin(x float64) float //implemented in assembly language
+```
+  - 递归
+
+  - 多返回值
+    - 调用多返回值函数时，返回给调用者的是一组值，调用者必须显式的将这些值分配给变量
+    - bare return: 如果一个函数所有的返回值都有显式的变量名，那么该函数的return语句可以省略操作数
+      - 不宜过多使用
+
+  - 错误
+    - 内置的 error 是接口类型
+      - error 类型可能是 nil 或 non-nil
+        - `nil` 意味着函数运行成功
+        - `non-nil` 表示失败
+          - 可以通过调用error的Error函数或者输出函数获得字符串类型的错误信息
+          - 当函数返回non-nil的error时，其他的返回值是`未定义的`
+```go
+fmt.Println(err)
+fmt.Printf("%v", err)
+```
+    - 错误处理策略
+      - 最常用: 传播错误
+      - 重试
+      - 输出错误信息并结束程序
+      - 输出错误信息但不结束程序
+      - 忽略错误
+    - 文件结尾错误(EOF)
+      - 直接比较
+
+- 函数值
+
+- 匿名函数
+  - `函数字面量`:可以在任何表达式中表示一个函数值
+  - 函数字面量的值被称为匿名函数
+  - 在函数中定义的内部函数可以引用该函数的变量!!!
+  - 函数值不仅仅是一串代码，还记录了状态
+    - Go 使用闭包(Closures)实现函数值,Go程序员也把函数值称为闭包
+
+- 警告: 捕获迭代变量!
+  - `函数值`中记录的是循环变量的`内存地址`，而不是循环变量某一时刻的值
+```go
+var rmdirs []func()
+for _, d := range tempDirs() {
+    dir := d // NOTE: necessary!!!!!!!!!!!!!!!!!!!!!!
+    os.MkdirAll(dir, 0755) // creates parent directories too
+    rmdirs = append(rmdirs, func() {
+        os.RemoveAll(dir)
+    })
+}
+// ...do some work…
+for _, rmdir := range rmdirs {
+    rmdir() // clean up
+}
+
+```
+
+- defer
+  - 只有包含该`defer`语句的函数执行完毕时,defer函数才会被执行
+    - 释放资源的defer应该直接跟在请求资源的语句后
+  - 多条defer执行的顺序: 栈
+
+- panic
+  - 适用于严重漏洞
+  - 不够优雅,不要随便用,做好错误处理
+
+- recover 捕获异常
+```go
+func Parse(input string) (s *Syntax, err error) {
+    defer func() {
+        if p := recover(); p != nil {
+            err = fmt.Errorf("internal error: %v", p)
+        }
+    }()
+    // ...parser...
+}
+```
+
+# 方法
+#### 方发声明
+- 在函数声明时，在其名字之前放上一个变量，即是一个方法
+- 对于一个给定的类型，其内部的方法都必须有唯一的方法名，但是不同的类型却可以有同样的方法名
+
+#### 基于指针对象的方法
+- 不管你的method的receiver是指针类型还是非指针类型，都是可以通过指针/非指针类型进行调用的，编译器会帮你做类型转换
+- 在声明一个method的receiver该是指针还是非指针类型时，你需要考虑两方面的因素，第一方面是这个对象本身是不是特别大，如果声明为非指针变量时，调用会产生一次拷贝；第二方面是如果你用指针类型作为receiver，那么你一定要注意，这种指针类型指向的始终是一块内存地址，就算你对其进行了拷贝
+
+#### 通过嵌入结构体来扩展类型
