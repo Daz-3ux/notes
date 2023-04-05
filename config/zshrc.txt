@@ -155,7 +155,7 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 eval $(thefuck --alias)
 cctl(){
-  token="9416bebc-70a7-4474-9cc0-32982fedbc18"
+  token=""
   Auth="Authorization: Bearer ${token}"
   api="http://127.0.0.1:9005"
   proxy=$(curl -s -H $Auth $api/proxies |jq '.proxies|[map(.)[]|select(has("type") and (.type=="URLTest" or .type=="Selector") and .name!="GLOBAL" )]')
