@@ -29,3 +29,7 @@
 - Pod 再定义参数控制容器
 - 容器再隔离控制进程
 - 进程最终实现业务功能
+
+---
+- kubectl run 只能创建 Pod
+- 创建 Pod 以外的对象需要使用 kubectl create
