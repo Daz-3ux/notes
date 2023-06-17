@@ -1,7 +1,7 @@
 import time
 
 def check_token(conn, token):
-    # 检查令牌是否存在并返回对应的的用户
+    # 检查令牌是否存在并返回 token 对应的的用户
     return conn.hget('login:', token)
 
 def update_token(conn, token, user, item=None):
@@ -18,6 +18,8 @@ def update_token(conn, token, user, item=None):
         conn.zadd('viewed:' + token, item, timestamp)
         # 移除旧的记录，只保留用户最近浏览过的25个商品
         conn.zremrangebyrank('viewed:' + token, 0, -26)
+        conn.zincrby('viewed:', item, -1)
+
 
 QUIT = False
 LIMIT = 10000000
@@ -33,7 +35,7 @@ def clean_sessions(conn):
         end_index = min(size - LIMIT, 100)
         tokens = conn.zrange('recent:', 0, end_index-1)
 
-        # 为那些将要被删除的令牌构建键名
+        # 为那些将要被删除的令牌`构建键名`
         session_keys = []
         for token in tokens:
             session_keys.append('viewed:' + token)
