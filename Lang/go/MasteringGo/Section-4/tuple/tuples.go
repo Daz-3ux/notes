@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func retThree(x int) (int, int, int) {
-	return x, x*x, x*x*x
+	return x, x * x, x * x * x
 }
 
 func main() {
@@ -12,8 +12,8 @@ func main() {
 	fmt.Println(n1, n2, n3)
 
 	n1, n2 = n2, n1
-		fmt.Println(n1, n2, n3)
+	fmt.Println(n1, n2, n3)
 
-		x1, x2, x3 := n1*2, n1*n1, -n1
-		fmt.Println(x1, x2, x3)
+	x1, x2, x3 := n1*2, n1*n1, -n1
+	fmt.Println(x1, x2, x3)
 }
