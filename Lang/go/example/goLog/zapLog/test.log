@@ -1,0 +1,12 @@
+2023-09-07T15:25:27.047+0800	DEBUG	zapLog/zap.go:17	Trying to hit GET request for www.google.com
+2023-09-07T15:25:27.047+0800	ERROR	zapLog/zap.go:17	Error fetching URL www.google.com : Error = Get "www.google.com": unsupported protocol scheme ""
+2023-09-07T15:25:27.047+0800	DEBUG	zapLog/zap.go:18	Trying to hit GET request for http://www.google.com
+2023-09-07T15:25:27.604+0800	INFO	zapLog/zap.go:18	Success! statusCode = 200 OK for URL http://www.google.com
+2023-09-07T15:33:42.241+0800	DEBUG	zapLog/zap.go:18	Trying to hit GET request for www.google.com
+2023-09-07T15:33:42.241+0800	ERROR	zapLog/zap.go:18	Error fetching URL www.google.com : Error = Get "www.google.com": unsupported protocol scheme ""
+2023-09-07T15:33:42.241+0800	DEBUG	zapLog/zap.go:19	Trying to hit GET request for http://www.google.com
+2023-09-07T15:33:42.868+0800	INFO	zapLog/zap.go:19	Success! statusCode = 200 OK for URL http://www.google.com
+2023-09-07T15:54:28.961+0800	DEBUG	zapLog/zap.go:18	Trying to hit GET request for www.google.com
+2023-09-07T15:54:28.961+0800	ERROR	zapLog/zap.go:18	Error fetching URL www.google.com : Error = Get "www.google.com": unsupported protocol scheme ""
+2023-09-07T15:54:28.961+0800	DEBUG	zapLog/zap.go:19	Trying to hit GET request for http://www.google.com
+2023-09-07T15:54:30.024+0800	INFO	zapLog/zap.go:19	Success! statusCode = 200 OK for URL http://www.google.com
