@@ -1,15 +1,8 @@
-package 整理
+package main
 
 import (
     "fmt"
     "sync"
-)
-
-package main
-
-import (
-"fmt"
-"sync"
 )
 
 func main() {
